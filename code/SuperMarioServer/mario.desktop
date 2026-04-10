@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=MarioServer
+Exec=/server/run-server.sh
+Terminal=true
+X-GNOME-Autostart-enabled=true
