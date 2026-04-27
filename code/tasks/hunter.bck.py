@@ -30,24 +30,6 @@ class HunterTask(marioai.Task):
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
 
-        if last_obs is None or current_obs.mario_pos is None or last_obs.mario_pos is None:
-            return 0
-
-        reward = 0
-
-        cur_x = current_obs.mario_pos[0]
-        last_x = last_obs.mario_pos[0]
-
-        # Primary objective: reward enemy kills (fewer enemies in scene = kill happened)
-        ENEMY_VALUES = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13}
-        cur_enemies  = sum(1 for v in current_obs.level_scene.flatten() if v in ENEMY_VALUES)
-        last_enemies = sum(1 for v in last_obs.level_scene.flatten()    if v in ENEMY_VALUES)
-        kills = last_enemies - cur_enemies
-        if kills > 0:
-            reward += kills * 5    # Strong reward per enemy killed
-
-        # Secondary: small reward for moving forward (to avoid static camping)
-        if cur_x > last_x:
-            reward += 0.5
+        reward = 0     
 
         return reward
