@@ -25,11 +25,13 @@ class Rewards:
                 jump_threshold=3.0,                             # threshold for determining a jump action based on the distance to the nearest relevant obstacle/enemy (can be tuned for different behaviors)
                 shoot_threshold=5.0,                            # threshold for determining a shoot action based on the distance to the nearest enemy (can be tuned for different behaviors)
                 duck_threshold=3.0,                             # threshold for determining a duck action based on the distance to the nearest obstacle/enemy (can be tuned for different behaviors)
+                time_penalty_value=0.01,                        # small penalty for each time step to encourage faster completion of the level
                 coin_reward_value=0.1,                          # small reward for collecting coins (encourages exploration and coin collection)
                 power_up_reward_value=1.0,                      # reward for collecting power-ups (e.g., mushrooms, fire flowers)
+                enemy_kill_reward_value=2.0,                    # reward for defeating enemies (encourages combat and threat elimination)
+                shoot_reward_value=0.5,                         # reward for shooting when it's beneficial (e.g., to defeat an enemy, determined by environment info)
                 ):
         
-
         # Reward parameters (can be tuned for different behaviors)
         self.forward_reward_value = forward_reward_value
         self.backward_penalty_value = backward_penalty_value
@@ -55,6 +57,9 @@ class Rewards:
         self.duck_threshold = duck_threshold
         self.coin_reward_value = coin_reward_value
         self.power_up_reward_value = power_up_reward_value
+        self.enemy_kill_reward_value = enemy_kill_reward_value
+        self.shoot_reward_value = shoot_reward_value 
+        self.time_penalty_value = time_penalty_value
 
         # Tracking variables for reward computation
         self.vars_current_obs = None
@@ -129,8 +134,6 @@ class Rewards:
         self.vars_last_obs = vars(last_obs) if last_obs is not None else None
         self.prev_dx = self.cur_dx
         self.reward = 0.0
-
-        print("vars_current_obs keys:", self.vars_current_obs.keys())
 
         mario_position_in_world = (11, 11)  # Mario's position in the level grid (col,row)
 
@@ -455,6 +458,19 @@ class Rewards:
             self.reward -= float(self.fall_penalty_value)
 
 
+    def time_penalty(self):
+        """
+        Computes a small negative penalty based on the time left in the level, which encourages the agent to complete the level more quickly.
+        The penalty increases as time runs out, creating a stronger incentive to finish sooner.
+        """
+        if self.vars_current_obs is None or self.vars_current_obs.get('time_left') is None:
+            return
+        
+        time_left = self.vars_current_obs['time_left']
+        # Apply a small penalty that increases as time runs out (can be tuned)
+        self.reward -= float(self.time_penalty_value) * (1 - time_left / 400)  # assuming max time is 400
+
+
     def coin_reward(self):
         """
         Computes a reward for collecting coins, which encourages the agent to explore and gather resources in the level.
@@ -487,7 +503,7 @@ class Rewards:
             # Optional: small penalty for losing power-up status (e.g., getting hit)
             self.reward -= float(self.power_up_reward_value) * (last_mode - cur_mode)
 
-    '''
+
     def enemy_kill_reward(self):
         """
         Computes a reward for defeating enemies, which encourages the agent to engage in combat and eliminate threats in the level.
@@ -502,8 +518,52 @@ class Rewards:
         # Count how many enemies were defeated (assuming enemy count decreases when defeated)
         if cur_enemies < last_enemies:
             # Reward for each enemy defeated (can be tuned)
-            self.reward += float(self.enemy_kill_reward_value) * (last_enemies - cur_enemies)   
-    '''
+            # Check if enemy was close to Mario to ensure it's a valid kill (not just an enemy disappearing far away)
+            if self.environment_info is not None and self.environment_info["nearest"]["enemies"] is not None:
+                nearest_enemy_dist = self.environment_info["nearest"]["enemies"][2]
+                if nearest_enemy_dist <= self.shoot_threshold:  # using shoot_threshold as a proxy for valid kill distance
+                    self.reward += float(self.enemy_kill_reward_value) * (last_enemies - cur_enemies)   
+
+
+    def shoot_reward(self):
+        """
+        Computes a reward for shooting when it's beneficial (e.g., to defeat an enemy or clear a path), which encourages the agent to use shooting strategically.
+        This can be implemented by checking if the shoot action was taken and if there was a nearby enemy that could be affected.
+        """
+        if self.last_action is None or self.environment_info is None:
+            return
+        
+        should_shoot = self.environment_info["should_run_shoot"]
+        nearest_enemy = self.environment_info["nearest"]["enemies"]
+
+        # Reward for shooting when there's a valid target within shoot_threshold
+        if should_shoot and nearest_enemy is not None and nearest_enemy[2] <= self.shoot_threshold:
+            # Check if enemy is close enough to be a valid shoot target (using shoot_threshold as a proxy)
+            if self.last_action is not None and len(self.last_action) > 1 and self.last_action[4] == 1:  # assuming action[4] corresponds to shoot
+                self.reward += float(self.shoot_reward_value)  # using shoot_reward_value as a proxy for shoot reward
+
+
+    def duck_reward(self):
+        """
+        Computes a reward for ducking when it's beneficial (e.g., to avoid a projectile or low enemy), which encourages the agent to use ducking strategically for defense.
+        This can be implemented by checking if the duck action was taken and if there was a nearby threat that could be avoided by ducking.
+        """
+        if self.last_action is None or self.environment_info is None:
+            return
+        
+        should_duck = self.environment_info["should_duck"]
+        nearest_threat = None
+        if self.environment_info["nearest"]["enemies"] is not None:
+            nearest_threat = self.environment_info["nearest"]["enemies"]
+
+        # Reward for ducking when there's a valid threat within duck_threshold
+        if should_duck and nearest_threat is not None and nearest_threat[2] <= self.duck_threshold:
+            # Check if threat is high enough to be avoided by ducking (using duck_threshold as a proxy for valid duck target)
+            if nearest_threat[1][1] <= self.vars_current_obs['mario_pos'][1] - 1:  # threat's y is at least 1 unit above Mario's y
+                # Check if threat is close enough to be a valid duck target (using duck_threshold as a proxy)
+                if self.last_action is not None and len(self.last_action) > 1 and self.last_action[2] == 1:  # assuming action[2] corresponds to duck
+                    self.reward += float(self.duck_reward_value)  # using duck_reward_value as a proxy for duck reward
+
 
     def finish_line_bonus(self):
         """

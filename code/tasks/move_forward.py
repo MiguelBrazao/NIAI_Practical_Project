@@ -34,6 +34,7 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         self.erratic_movement_penalty()                 # Penalty for erratic movement (e.g., moving backward or staying still)
         self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior 
         self.fall_penalty()                             # Penalty for falling
+        self.time_penalty()                             # Small penalty for each time step to encourage faster completion
         self.finish_line_bonus()                        # Bonus for reaching the finish line
         return self.reward                              # Return the computed reward and reset internal state for next step 
 
