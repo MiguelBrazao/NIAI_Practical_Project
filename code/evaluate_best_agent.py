@@ -9,6 +9,7 @@ import inspect
 import argparse
 from pathlib import Path
 import data.gp_best_agents.mario_best as mario_best
+import re
 
 def evaluate_code_agent():
     action = inspect.getsource(mario_best.corre)
@@ -57,20 +58,18 @@ def evaluate_mlp_agent_with_params(agent_path: str = None, task_name: str = 'mov
         # Filenames expected like: <model>_seed_<seed>_<float reward>.pkl
         best = None
         best_reward = -float('inf')
+        pattern = re.compile(r'(-?\d+(?:\.\d+)?)$')  # match final signed float
         for c in candidates:
-            stem = c.stem
-            parts = stem.split('_')
-            if not parts:
+            m = pattern.search(c.stem)
+            if not m:
                 continue
-            last = parts[-1]
             try:
-                r = float(last)
+                r = float(m.group(1))
             except Exception:
-                r = None
-            if r is not None:
-                if r > best_reward:
-                    best_reward = r
-                    best = c
+                continue
+            if r > best_reward:
+                best_reward = r
+                best = c
 
         if best is None:
             # fallback to newest if no parsable reward found

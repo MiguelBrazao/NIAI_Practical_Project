@@ -2,28 +2,13 @@ import torch
 import torch.nn as nn
 import numpy as np
 import marioai
-from .utils import (
-    erratic_movement_penalty,
-    forward_reward,
-    jump_reward,
-    fall_penalty,
-    finish_line_bonus,
-)
+import tasks.rewards as rewards
 
-
-class MoveForwardTask(marioai.Task):
+class MoveForwardTask(marioai.Task, rewards.Rewards):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        marioai.Task.__init__(self, *args, **kwargs)
+        rewards.Rewards.__init__(self)
         self.name = "MoveForward"
-
-        # Tracking variables for reward computation
-        self.cur_dx = 0
-        self.prev_dx = 0
-        self.direction_change_counter = 0
-        self.last_action = None
-        self.jump_press_counter = 0
-        self.jump_in_place_counter = 0
-
 
     def compute_reward(self, current_obs, last_obs):
         """
@@ -44,67 +29,24 @@ class MoveForwardTask(marioai.Task):
         - Consider the balance between encouraging progress, rewarding kills, and penalizing 
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
-
-        reward, self.cur_dx = forward_reward(current_obs, last_obs)
-
-        erratic_penalty, self.direction_change_counter = erratic_movement_penalty(self.cur_dx, self.prev_dx, self.direction_change_counter)
-        reward -= erratic_penalty
-
-        jump_reward_value, self.jump_press_counter, self.jump_in_place_counter = jump_reward(current_obs, last_obs, self.cur_dx, self.jump_press_counter, self.jump_in_place_counter)
-        reward += jump_reward_value
-             
-        reward -= fall_penalty(current_obs, last_obs)
-
-        reward += finish_line_bonus(current_obs, last_obs)
-
-        return reward
+        self.extract_environment(current_obs, last_obs) # Update internal state based on observations (e.g., position, velocity, enemies)
+        self.forward_reward()                           # Reward for moving forward (primary objective)
+        self.erratic_movement_penalty()                 # Penalty for erratic movement (e.g., moving backward or staying still)
+        self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior 
+        self.fall_penalty()                             # Penalty for falling
+        self.finish_line_bonus()                        # Bonus for reaching the finish line
+        return self.reward                              # Return the computed reward and reset internal state for next step 
 
 
     def reset(self):
-        super().reset()
-        self.prev_dx = 0
-        self.direction_change_counter = 0
-        self.last_action = None
-        self.jump_press_counter = 0
-        self.jump_in_place_counter = 0
+        marioai.Task.reset(self)
+        rewards.Rewards.reset(self)
 
 
     def perform_action(self, action):
-        try:
-            # Capture action to track jump holding, then forward to base implementation.
-            self.last_action = action
-            if action is not None and len(action) > 3 and action[3] == 1:
-                self.jump_press_counter += 1
-            else:
-                self.jump_press_counter = 0
-        except Exception:
-            pass
-
-        super().perform_action(action)
+        marioai.Task.perform_action(self, action)
+        rewards.Rewards.perform_action(self, action)
 
 
     def get_sensors(self):
-        """Override to apply final-episode penalties using the fitness packet (status).
-
-        We avoid touching marioai/ and instead inspect the raw Observation from the
-        environment here. For fitness packets (level_scene is None) we penalize
-        non-win statuses and return the Observation as usual.
-        """
-        sense = self.env.get_sensors()
-
-        # Fitness packet (no level scene)
-        if sense.level_scene is None:
-            # Base reward from distance
-            self.reward = sense.distance
-            self.status = sense.status
-
-            # Penalize non-win endings (e.g., death)
-            if self.status != 1:
-                self.reward -= 50.0
-            self.finished = True
-        else:
-            # Step reward computed by this task
-            self.reward = self.compute_reward(sense, self.last_observation)
-            self.last_observation = sense
-
-        return sense
+        return rewards.Rewards.get_sensors(self)
