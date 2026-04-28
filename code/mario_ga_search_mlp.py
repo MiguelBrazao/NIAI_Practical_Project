@@ -35,19 +35,23 @@ def make_evolution_plot(best, mean, title, save=False):
     plt.pause(0.01)
     plt.clf()
     
+
 # Tournament parent selection
 def tournament(population, population_size, tournament_k, rewards, replace=False):
     idx = np.random.choice(population_size, tournament_k, replace=replace)
     return deepcopy(population[idx[np.argmax(rewards[idx])]])
 
+
 # Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
 # Population_size is the number of candidate solutions (MLP parameter vectors) in each generation: currently set to 100, which means we evaluate 100 different MLP parameter sets each generation.
-# Sigma is the mutation strength: currently set to 0.2, which means mutations will add noise with std dev of 0.2 to the parameters.
+# Generations is how many iterations of the evolutionary process to run: currently set to 200, which means we will evolve the population for 200 generations.
 # Tournament_k is the number of individuals in each tournament: currently set to 10, which means we randomly select 10 individuals and pick the best among them as a parent.
 # Crossover_rate is the probability of performing crossover: currently set to 0.7, which means that 70% of the time we will create a child by combining two parents, and 30% of the time we will just copy one parent (no crossover).
+# Sigma is the mutation strength: currently set to 0.2, which means mutations will add noise with std dev of 0.2 to the parameters.
+# Mutation_rate is the probability of mutating each parameter: currently set to 0.1, which means each parameter has a 10% chance of being mutated.
 # Elite_count is how many top individuals to carry over unchanged: currently set to 4, which means the best 4 individuals from each generation will be directly copied to the next generation without any mutation or crossover.
-def genetic_algorithm(population_size=100, generations=200, sigma=0.2,
-                      tournament_k=15, crossover_rate=0.7, elite_count=15):
+def genetic_algorithm(population_size=100, generations=200, 
+                      tournament_k=15, crossover_rate=0.7, sigma=0.2, mutation_rate=0.1, elite_count=15):
     """
     Evolve MLP weights using a Genetic Algorithm with:
     - Tournament selection (parent selection)
@@ -58,8 +62,9 @@ def genetic_algorithm(population_size=100, generations=200, sigma=0.2,
     agent = MLPAgent
     num_params = len(MLPAgent().get_param_vector())
 
-    # --- Initialization ---
-    population = [np.random.randn(num_params) * sigma for _ in range(population_size)]
+    # Initialization
+    # We tried using sigma to insert noise
+    population = [np.random.randn(num_params) for _ in range(population_size)]
 
     best_params = population[0]
     best_reward = -np.inf
@@ -69,10 +74,10 @@ def genetic_algorithm(population_size=100, generations=200, sigma=0.2,
     for generation in range(generations):
         print(f"\n--- Generation {generation+1}/{generations} ---")
 
-        # --- Evaluate ---
+        # Evaluate
         rewards = evaluate_population(agent, population)
 
-        # --- Elitism: carry best individual(s) unchanged ---
+        # Elitism: carry best individual(s) unchanged
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         new_population = [deepcopy(population[i]) for i in elite_idx]
 
@@ -89,15 +94,16 @@ def genetic_algorithm(population_size=100, generations=200, sigma=0.2,
             parent1 = tournament(population, population_size, tournament_k, rewards) # Tournament selection for parent 1
             parent2 = tournament(population, population_size, tournament_k, rewards) # Tournament selection for parent 2 (can be the same as parent 1)
 
-            # Uniform crossover
+            # Crossover
             if np.random.rand() < crossover_rate:
                 mask = np.random.rand(num_params) < 0.5
                 child = np.where(mask, parent1, parent2)
             else:
                 child = deepcopy(parent1)
 
-            # Gaussian mutation
-            child += sigma * np.random.randn(num_params)
+            # Mutation
+            mask = np.random.rand(num_params) < mutation_rate
+            child[mask] += sigma * np.random.randn(mask.sum())
 
             new_population.append(child)
 
@@ -111,9 +117,7 @@ def genetic_algorithm(population_size=100, generations=200, sigma=0.2,
     return best_params
 
 
-
 if __name__ == "__main__":
     np.random.seed(int(sys.argv[1]))
     torch.random.manual_seed(int(sys.argv[1]))
     genetic_algorithm()
-    

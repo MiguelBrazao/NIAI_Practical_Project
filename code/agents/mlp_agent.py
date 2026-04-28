@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 import marioai
 
+
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
@@ -15,8 +16,10 @@ class MLP(nn.Module):
             nn.Sigmoid() # Sigmoid for multi-binary output (or should it be separate?)
         )
 
+
     def forward(self, x):
         return self.model(x)
+
 
 # Optimized MLPAgent with reduced input space and fixed enemy representation.
 class MLPAgent(marioai.Agent):
@@ -58,20 +61,8 @@ class MLPAgent(marioai.Agent):
         self.mlp = MLP(self.input_dim, self.output_dim)
 
         # Action threshold
-        self.threshold = 0.35 # Threshold for converting MLP outputs to binary actions
+        self.threshold = 0.25 # Threshold for converting MLP outputs to binary actions
 
-        # Consecutive jump management
-        self.consecutive_jump_steps = 0
-        self.max_consecutive_jump_steps = 5 # Max steps to keep jump active after initial activation
-
-        # Wait time before allowing another jump activation (to prevent spamming jump)
-        self.jump_cooldown = 0
-        self.jump_cooldown_time = 5 # Cooldown time in steps after jump is deactivated before it can be activated again
-
-        # Consecutive movement swap management (to prevent erratic switching between forward/backward/crouch)
-        self.last_movement_action = None
-        self.movement_swap_cooldown = 0
-        self.movement_swap_cooldown_time = 10 # Cooldown time in steps after switching movement action before allowing another switch
 
     def sense(self, obs):
         super(MLPAgent, self).sense(obs)
@@ -84,18 +75,16 @@ class MLPAgent(marioai.Agent):
         # self.level_scene (numpy array 22x22)
         pass
 
+
     # Optimized window-based input processing and fixed enemy representation.
+    # Action post-processing to manage movement and jump behavior more effectively.
     def act(self):
         if self.level_scene is None:
             return [0, 0, 0, 0, 0] # No input yet, return no action
 
-        # Flatten level scene
-        # scene_flat = self.level_scene.flatten()
+        full_window = self.level_scene # 22x22 grid
 
-        # Mario position (keep as feature inputs)
-        mario_pos = np.array(self.mario_floats)
-
-        # Use the level_scene grid center for window extraction (Mario is centered at 11,11)
+        # Use the full_window grid center for window extraction (Mario is centered at 11,11)
         cx, cy = 11, 11
         x_min = max(0, cx - 3)
         x_max = min(21, cx + 3)
@@ -103,15 +92,18 @@ class MLPAgent(marioai.Agent):
         y_max = min(21, cy + 3)
 
         # Extract window and pad if necessary
-        window = np.zeros((7, 7), dtype=self.level_scene.dtype)
+        window = np.zeros((7, 7), dtype=full_window.dtype)
         win_x_min = 3 - (cx - x_min)
         win_x_max = 3 + (x_max - cx) + 1
         win_y_min = 3 - (cy - y_min)
         win_y_max = 3 + (y_max - cy) + 1
 
-        # Copy the valid part of the level_scene into the window
-        window[win_y_min:win_y_max, win_x_min:win_x_max] = self.level_scene[y_min:y_max+1, x_min:x_max+1]
+        # Copy the valid part of the full_window into the window
+        window[win_y_min:win_y_max, win_x_min:win_x_max] = full_window[y_min:y_max+1, x_min:x_max+1]
         scene_flat = window.flatten()  # 49 values
+
+        # Mario position (keep as feature inputs)
+        mario_pos = np.array(self.mario_floats)
 
         # Boolean flags
         flags = np.array([float(self.can_jump), float(self.on_ground)])
@@ -146,55 +138,15 @@ class MLPAgent(marioai.Agent):
         action_probs = output_tensor.numpy() # Probabilities for each action
         action = (action_probs > self.threshold).astype(int).tolist() # Convert to binary actions based on threshold
 
-        # print(f'Actions: {action}')
-
-        # Avoid multiple movement actions at once (e.g., can't move forward and backward simultaneously)
-        # Check which movement action (backward, forward, crouch) has the highest probability and set it to 1, others to 0
-        movement_actions = action[:3] # First 3 are movement actions
-        if sum(movement_actions) > 0: # If any movement action is active
-            max_idx = np.argmax(movement_actions)
-            # Set only the highest prob movement action to 1 but prioritize forward > backward > crouch in case of ties
-            if movement_actions[max_idx] == movement_actions[1]: # If forward is tied for highest, prioritize it
-                action[:3] = [0, 1, 0]
-            elif movement_actions[max_idx] == movement_actions[0]: # If backward is tied for highest, prioritize it
-                action[:3] = [1, 0, 0]
-            else:
-                action[:3] = [0, 0, 1] # Crouch if it's the highest or tied with lower priority
-
-        # Check for movement swap and manage cooldown to prevent erratic switching
-        current_movement_action = np.argmax(action[:3]) if sum(action[:3]) > 0 else None
-        if current_movement_action != self.last_movement_action:
-            if self.movement_swap_cooldown == 0:
-                self.last_movement_action = current_movement_action
-                self.movement_swap_cooldown = self.movement_swap_cooldown_time # Set cooldown after a movement switch
-            else:
-                # If we're in cooldown, revert to last movement action
-                if self.last_movement_action is not None:
-                    action[:3] = [1 if i == self.last_movement_action else 0 for i in range(3)]
-                else:
-                    action[:3] = [0, 0, 0] # No movement if last was None
-                self.movement_swap_cooldown -= 1 # Decrease cooldown
-
-        # Check if jump is active and manage consecutive jump steps to encourage keeping it active longer
-        if action[3] == 1: # Jump action is active
-            if self.jump_cooldown == 0: # Only allow jump if cooldown is 0
-                self.consecutive_jump_steps += 1
-                if self.consecutive_jump_steps > self.max_consecutive_jump_steps:
-                    action[3] = 0 # Deactivate jump if we've exceeded max consecutive steps
-                    self.jump_cooldown = self.jump_cooldown_time # Set cooldown
-            else:
-                action[3] = 0 # Deactivate jump if cooldown is active
-                self.jump_cooldown -= 1 # Decrease cooldown
-        else:
-            self.consecutive_jump_steps = 0 # Reset counter if jump is not active
-
         return action
+
 
     def get_param_vector(self):
         params = []
         for param in self.mlp.parameters():
             params.append(param.data.cpu().numpy().flatten())
         return np.concatenate(params)
+
 
     def set_param_vector(self, vector):
         offset = 0

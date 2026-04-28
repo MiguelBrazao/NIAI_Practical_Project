@@ -6,8 +6,8 @@ from tasks import MoveForwardTask, HunterTask
 import numpy as np
 import os
 
-# Variable that configures the number of parallel processes
-N_PROCESSES = 5
+# Variable that configures the number of parallel processes from environment variable, default is 5
+N_PROCESSES = int(os.environ.get('PROCESSES', '5'))
 
 # Task selection via environment variable: 'move_forward' (default) or 'hunter'
 _task_env = os.environ.get('TASK', 'move_forward').lower()
@@ -44,11 +44,9 @@ def evaluate_agent(agent, task, episodes=1):
                 task.level_difficulty += 1
             else:
                 break
-        
-                
+            
         total_reward += episode_reward
         
-    
     return total_reward / episodes
 
 
@@ -104,6 +102,7 @@ def evaluate_individual(ind_info):
         
     return reward
 
+
 def evaluate(agent_class, ind_info):
     global worker_agent, worker_task
     if worker_agent is None:
@@ -114,7 +113,6 @@ def evaluate(agent_class, ind_info):
 
 
 def evaluate_population(agent, population):
-    
     # Match processes to tasks to avoid one worker being idle or double-booking
     n_processes = N_PROCESSES
 
