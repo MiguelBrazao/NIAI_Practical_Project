@@ -4,21 +4,20 @@ class Rewards:
     def __init__(
                 self, 
                 forward_reward_value=1.0,                       # base reward for moving forward (positive dx)
+                cur_dx_threshold=10.0,                          # threshold for normalizing dx (typical max ~5 pixels/step)
                 backward_penalty_value=0.5,                     # base penalty for moving backward (negative dx)
                 still_penalty_value=0.1,                        # penalty for not moving (dx = 0)
-                direction_flip_penalty_value=-0.3,              # penalty for changing direction from forward to backward (only triggered when previously moving forward and now moving backward)
-                direction_flip_extra_penalty_value=-0.1,        # additional penalty for consecutive direction flips (increases with each flip)
-                direction_flip_extra_penalty_cap_value=-1.0,    # cap for the cumulative extra penalty from direction flips to prevent it from becoming too large
+                direction_flip_penalty_value=0.3,               # penalty for changing direction from forward to backward (only triggered when previously moving forward and now moving backward)
+                direction_flip_extra_penalty_value=0.1,         # additional penalty for consecutive direction flips (increases with each flip)
+                direction_flip_extra_penalty_cap_value=1.0,     # cap for the cumulative extra penalty from direction flips to prevent it from becoming too large
                 jump_reward_value=0.2,                          # reward for jumping when it's beneficial (e.g., to survive or collect an item, determined by environment info) 
                 jump_overhold_penalty=0.02,                     # penalty for holding the jump button too long without benefit (e.g., not making progress or getting stuck)
                 jump_in_place_repeat_cap=-0.5,                  # cap for the cumulative penalty from jumping in place
-                jump_in_place_dx_threshold=1.0,                 # threshold for considering a jump as "in place" (i.e., not making significant forward progress)
+                jump_in_place_dx_threshold=2.0,                 # threshold for considering a jump as "in place" (i.e., not making significant forward progress)
                 jump_in_place_penalty=0.05,                     # incremental penalty for each consecutive jump in place (resets when a non-jump or a beneficial jump occurs)  
                 jump_hold_min=3,                                # minimum consecutive jump presses to consider it a sustained jump (used to differentiate from a single jump press)
                 jump_hold_max=10,                               # maximum consecutive jump presses to consider for sustained jump rewards/penalties (beyond this is likely a stuck jump and can be penalized)
                 jump_hold_step_reward=0.05,                     # additional reward for each step of a sustained jump (encourages holding the jump button when beneficial)
-                fall_threshold_value=-5,                        # threshold for detecting a fall (negative value, e.g., if Mario's y decreases by more than this value between steps, it's considered a fall)
-                fall_penalty_value=0.5,                         # penalty for falling
                 death_penalty_value=50.0,                       # penalty for dying (non-win status)
                 finish_line_threshold=3000,                     # x position threshold for considering the level as completed (this can be tuned based on the level design)
                 finish_line_bonus_value=500.0,                  # bonus for reaching the finish line
@@ -30,10 +29,13 @@ class Rewards:
                 power_up_reward_value=1.0,                      # reward for collecting power-ups (e.g., mushrooms, fire flowers)
                 enemy_kill_reward_value=2.0,                    # reward for defeating enemies (encourages combat and threat elimination)
                 shoot_reward_value=0.5,                         # reward for shooting when it's beneficial (e.g., to defeat an enemy, determined by environment info)
+                duck_reward_value=0.3,                          # reward for ducking when it's beneficial (e.g., to avoid a projectile or low enemy, determined by environment info)
+                distance_scale=30                               # scaling factor for normalizing distance-based rewards (e.g., forward movement) to keep reward values in a reasonable range (tuned based on typical distances in the game)
                 ):
         
         # Reward parameters (can be tuned for different behaviors)
         self.forward_reward_value = forward_reward_value
+        self.cur_dx_threshold = cur_dx_threshold
         self.backward_penalty_value = backward_penalty_value
         self.still_penalty_value = still_penalty_value
         self.direction_flip_penalty_value = direction_flip_penalty_value
@@ -47,8 +49,6 @@ class Rewards:
         self.jump_hold_min = jump_hold_min
         self.jump_hold_max = jump_hold_max
         self.jump_hold_step_reward = jump_hold_step_reward
-        self.fall_threshold_value = fall_threshold_value
-        self.fall_penalty_value = fall_penalty_value
         self.death_penalty_value = death_penalty_value
         self.finish_line_threshold = finish_line_threshold
         self.finish_line_bonus_value = finish_line_bonus_value
@@ -59,7 +59,9 @@ class Rewards:
         self.power_up_reward_value = power_up_reward_value
         self.enemy_kill_reward_value = enemy_kill_reward_value
         self.shoot_reward_value = shoot_reward_value 
+        self.duck_reward_value = duck_reward_value
         self.time_penalty_value = time_penalty_value
+        self.distance_scale = distance_scale
 
         # Tracking variables for reward computation
         self.vars_current_obs = None
@@ -72,17 +74,27 @@ class Rewards:
         self.jump_press_counter = 0
         self.jump_in_place_counter = 0
         self.reward = 0.0
+        self.finish_line_reached = False  # add this tracking variable
+        self.episode_reward = 0.0  # to accumulate rewards over the episode
+        self.last_observation = None  # add this
 
 
     def reset(self):
+        self.vars_current_obs = None
+        self.vars_last_obs = None
+        self.environment_info = None
+        self.reward = 0.0
         self.prev_dx = 0
         self.cur_dx = 0
         self.direction_change_counter = 0
         self.last_action = None
         self.jump_press_counter = 0
         self.jump_in_place_counter = 0
+        self.finish_line_reached = False
+        self.episode_reward = 0.0
+        self.last_observation = None  # add this
 
-    
+
     def perform_action(self, action):
         self.last_action = action
         if action is not None and len(action) > 3 and action[3] == 1:
@@ -102,17 +114,16 @@ class Rewards:
 
         # Fitness packet (no level scene)
         if sense.level_scene is None:
-            # Base reward from distance
-            self.reward = sense.distance
+            normalized_distance = sense.distance / self.distance_scale # ~0–100 range
+            self.reward = normalized_distance + self.episode_reward
             self.status = sense.status
-
-            # Penalize non-win endings (e.g., death)
             if self.status != 1:
                 self.reward -= float(self.death_penalty_value)
             self.finished = True
         else:
-            # Step reward computed by this task
-            self.reward = self.compute_reward(sense, self.last_observation)
+            step_reward = self.compute_reward(sense, self.last_observation)
+            self.episode_reward += step_reward  # accumulate
+            self.reward = step_reward
             self.last_observation = sense
 
         return sense
@@ -132,10 +143,10 @@ class Rewards:
         """
         self.vars_current_obs = vars(current_obs)
         self.vars_last_obs = vars(last_obs) if last_obs is not None else None
-        self.prev_dx = self.cur_dx
+        # DO NOT set self.prev_dx here — forward_reward handles it
         self.reward = 0.0
 
-        mario_position_in_world = (11, 11)  # Mario's position in the level grid (col,row)
+        mario_position_in_grid = (11, 11)  # Mario's position in the level grid (col,row)
 
         # cell value constants (same as before)
         soft_obstacle = -11
@@ -188,16 +199,16 @@ class Rewards:
         for y in range(22):
             for x in range(22):
                 cell_value = self.vars_current_obs['level_scene'][y, x]
-                distance = ((x - mario_position_in_world[0]) ** 2 + (y - mario_position_in_world[1]) ** 2) ** 0.5
+                distance = ((x - mario_position_in_grid[0]) ** 2 + (y - mario_position_in_grid[1]) ** 2) ** 0.5
                 cell = (cell_value, (x, y), distance)
-                if x >= mario_position_in_world[0]:
+                if x >= mario_position_in_grid[0]:
                     if cell_value == soft_obstacle:
                         soft_obstacles_in_front.append(cell)
                     elif cell_value == hard_obstacle:
                         hard_obstacles_in_front.append(cell)
                     elif cell_value == empty_space:
                         empty_space_in_front.append(cell)
-                    elif cell_value in {enemy_obstacle, enemy_goomba, enemy_goomba_winged, enemy_red_koopa, enemy_red_koopa_winged, enemy_green_koopa, enemy_green_koopa_winged, enemy_bullet_bill, enemy_spiky, enemy_spiky_winged, enemy_piranha_flower, enemy_shell}:
+                    elif cell_value in {enemy_goomba, enemy_goomba_winged, enemy_red_koopa, enemy_red_koopa_winged, enemy_green_koopa, enemy_green_koopa_winged, enemy_bullet_bill, enemy_spiky, enemy_spiky_winged, enemy_piranha_flower, enemy_shell}:
                         enemies_in_front.append(cell)
                     elif cell_value == item_mushroom:
                         mushrooms_in_front.append(cell)
@@ -220,7 +231,7 @@ class Rewards:
                         hard_obstacles_behind.append(cell)
                     elif cell_value == empty_space:
                         empty_space_behind.append(cell)
-                    elif cell_value in {enemy_obstacle, enemy_goomba, enemy_goomba_winged, enemy_red_koopa, enemy_red_koopa_winged, enemy_green_koopa, enemy_green_koopa_winged, enemy_bullet_bill, enemy_spiky, enemy_spiky_winged, enemy_piranha_flower, enemy_shell}:
+                    elif cell_value in {enemy_goomba, enemy_goomba_winged, enemy_red_koopa, enemy_red_koopa_winged, enemy_green_koopa, enemy_green_koopa_winged, enemy_bullet_bill, enemy_spiky, enemy_spiky_winged, enemy_piranha_flower, enemy_shell}:
                         enemies_behind.append(cell)
                     elif cell_value == item_mushroom:
                         mushrooms_behind.append(cell)
@@ -279,9 +290,13 @@ class Rewards:
             "hard_obstacles": nearest_cell(hard_obstacles_in_front),
             "empty_space": nearest_cell(empty_space_in_front),
             "enemies": nearest_cell(enemies_in_front),
-            "enemy_obstacles": nearest_cell(enemy_obstacles_in_front),
             "mushrooms": nearest_cell(mushrooms_in_front),
+            "fire_flowers": nearest_cell(fire_flowers_in_front),
+            "bricks": nearest_cell(bricks_in_front),
+            "enemy_obstacles": nearest_cell(enemy_obstacles_in_front),
+            "question_bricks": nearest_cell(question_bricks_in_front),
             "mario_weapon_projectiles": nearest_cell(mario_weapon_projectiles_in_front),
+            "undefined": nearest_cell(undefined_in_front)
         }
 
         # find overall closest object among selected categories
@@ -292,35 +307,34 @@ class Rewards:
             closest_category, closest_cell = (None, None)
 
         # decide actions using separate thresholds
-        closest_dist = closest_cell[2] if closest_cell is not None else float("inf")
         nearest_enemy = nearest["enemies"]
         nearest_enemy_dist = nearest_enemy[2] if nearest_enemy is not None else float("inf")
-        nearest_projectile = nearest["mario_weapon_projectiles"]
-        nearest_projectile_dist = nearest_projectile[2] if nearest_projectile is not None else float("inf")
-        nearest_hard = nearest["hard_obstacles"]
-        nearest_hard_dist = nearest_hard[2] if nearest_hard is not None else float("inf")
 
         # should_jump: nearest relevant obstacle/enemy within jump_threshold
         should_jump_flags = {"to_survive": False, "to_collect": False}
-        if closest_category in {"enemies", "soft_obstacles", "hard_obstacles"} and closest_dist <= self.jump_threshold:
-            should_jump_flags["to_survive"] = True
-        if closest_category in {"mushrooms", "fire_flowers", "question_bricks"} and closest_dist <= self.jump_threshold:
-            should_jump_flags["to_collect"] = True
+        
+        # Check each threat category independently, not just the overall closest
+        for cat in {"enemies", "soft_obstacles", "hard_obstacles", "enemy_obstacles"}:
+            if nearest[cat] is not None and nearest[cat][2] <= self.jump_threshold:
+                should_jump_flags["to_survive"] = True
+                break
+        
+        for cat in {"enemies", "mushrooms", "fire_flowers", "bricks", "question_bricks"}:
+            if nearest[cat] is not None and nearest[cat][2] <= self.jump_threshold:
+                should_jump_flags["to_collect"] = True
+                break
 
         # should_run_shoot: enemy is the main trigger within shoot_threshold
         should_run_shoot = nearest_enemy_dist <= self.shoot_threshold
 
         # should_duck: projectile or low enemy close enough (projectile prioritized)
         # treat projectiles with y <= mario_y - 1 as duck candidates
-        mario_y = mario_position_in_world[1]
+        mario_y = mario_position_in_grid[1]
         duck_candidate = False
-        if nearest_projectile is not None and nearest_projectile_dist <= self.duck_threshold:
-            px = nearest_projectile[1][0]; py = nearest_projectile[1][1]
-            if py <= mario_y - 1:
-                duck_candidate = True
         if nearest_enemy is not None and nearest_enemy_dist <= self.duck_threshold:
             ex = nearest_enemy[1][0]; ey = nearest_enemy[1][1]
-            if ey <= mario_y - 1:
+            # If nearest enemy is higher than Mario, then it's a duck candidate
+            if ey <= mario_y - 1:  # revert back: enemy above = smaller grid y
                 duck_candidate = True
         should_duck = duck_candidate
 
@@ -344,22 +358,20 @@ class Rewards:
         """
         # If we don't have a previous observation or mario position info, do nothing
         if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
-            return 0.0
+            return
 
         # store previous dx before updating
         self.prev_dx = self.cur_dx
 
         cur_x, _ = self.vars_current_obs['mario_pos']
         last_x, _ = self.vars_last_obs['mario_pos']
-        dx_raw = cur_x - last_x
-
-        # clamp dx to [-1, 1] (useful to avoid extreme step rewards)
-        self.cur_dx = max(min(dx_raw, 1.0), -1.0)
+        self.cur_dx = cur_x - last_x
+        normalized_dx = max(min(self.cur_dx / self.cur_dx_threshold, 1.0), -1.0)  # normalize: typical max ~5 pixels/step
 
         if self.cur_dx > 0:
-            self.reward += self.forward_reward_value * self.cur_dx
+            self.reward += self.forward_reward_value * normalized_dx
         elif self.cur_dx < 0:
-            self.reward -= self.backward_penalty_value * abs(self.cur_dx)
+            self.reward -= self.backward_penalty_value * abs(normalized_dx)
         else:
             self.reward -= self.still_penalty_value
 
@@ -370,19 +382,14 @@ class Rewards:
         Penalize when previously moving forward and now moving backward.
         """
         penalty = 0.0
-
-        # Penalize only when Mario was moving forward and now moves backward
         if self.prev_dx > 0 and self.cur_dx < 0:
-            # Increment direction change counter and penalize
             self.direction_change_counter += 1
-            penalty += self.direction_flip_penalty_value  # immediate penalty for turning backwards
-            # Extra penalty for repeated backward turns in the same episode (apply cap)
+            penalty = self.direction_flip_penalty_value
             extra = self.direction_flip_extra_penalty_value * (self.direction_change_counter - 1)
-            # extra is negative by config convention; ensure we don't go below the cap
-            penalty += max(extra, self.direction_flip_extra_penalty_cap_value)
-        
-        # apply penalty to cumulative reward and return it
-        self.reward += penalty
+            penalty += min(extra, self.direction_flip_extra_penalty_cap_value)
+            self.reward -= penalty
+        elif self.cur_dx > 0:
+            self.direction_change_counter = 0  # reset when moving forward consistently
 
 
     def should_jump(self, type="to_survive"):
@@ -390,23 +397,21 @@ class Rewards:
         Determines whether Mario should jump based on the environment information extracted from the current observation. 
         This function can be used to inform the agent's decision-making process and encourage strategic use of jumping to navigate obstacles and enemies.
         """
-        # Check if should jump to survive (avoid nearby threats)
+        if self.environment_info is None:
+            return False
         if type == "to_survive" and self.environment_info["should_jump"]["to_survive"]:
             return True
-        
         if type == "to_collect" and self.environment_info["should_jump"]["to_collect"]:
             return True
-        
-        # Additional logic can be added here based on the specific environment information and desired behavior
         return False
 
 
-    def jump_reward(self):
+    def jump_reward(self, type="to_survive"):
         """
         Computes a reward for upward movement (jumping) as a positive signal.
         Ensures the press counter is started only when Mario was on the ground in the previous observation.
         """
-        if self.vars_last_obs is None or self.vars_current_obs['mario_pos'] is None or self.vars_last_obs['mario_pos'] is None:
+        if self.vars_last_obs is None or self.vars_current_obs is None or ...:
             return
         
         _, cur_y = self.vars_current_obs['mario_pos']
@@ -414,15 +419,14 @@ class Rewards:
         last_on_ground = bool(self.vars_last_obs.get('on_ground', True))
         cur_on_ground = bool(self.vars_current_obs.get('on_ground', True))
 
-        # Only reward a beneficial jump, never penalize for not jumping
-        if self.should_jump(type="to_survive") and cur_y > last_y:
+        if self.should_jump(type=type) and cur_y > last_y:
             self.reward += self.jump_reward_value
         
         if last_on_ground and not cur_on_ground:
-            self.jump_press_counter = 1
             self.jump_in_place_counter = 0
+            # jump_press_counter already reset/incremented by perform_action, don't touch it here
         elif not cur_on_ground and self.jump_press_counter > 0:
-            self.jump_press_counter += 1
+            # DO NOT increment jump_press_counter here — perform_action already does it
             if self.jump_hold_min <= self.jump_press_counter <= self.jump_hold_max:
                 self.reward += self.jump_hold_step_reward
             elif self.jump_press_counter > self.jump_hold_max:
@@ -430,32 +434,17 @@ class Rewards:
                 self.reward -= self.jump_overhold_penalty * over
             cur_x, _ = self.vars_current_obs['mario_pos']
             last_x, _ = self.vars_last_obs['mario_pos']
-            if abs(cur_x - last_x) < self.jump_in_place_dx_threshold:
+            # Only penalize if Mario is making no forward progress overall
+            if abs(cur_x - last_x) < self.jump_in_place_dx_threshold and self.cur_dx <= 0:
                 self.jump_in_place_counter += 1
-                penalty = self.jump_in_place_penalty * self.jump_in_place_counter
-                self.reward -= min(penalty, abs(self.jump_in_place_repeat_cap))
+                # Cap the counter so penalty per step stops growing after cap is reached
+                capped_counter = min(self.jump_in_place_counter, int(abs(self.jump_in_place_repeat_cap) / self.jump_in_place_penalty))
+                penalty = self.jump_in_place_penalty * capped_counter
+                self.reward -= penalty
             else:
                 self.jump_in_place_counter = 0
         else:
-            self.jump_press_counter = 0
             self.jump_in_place_counter = 0
-
-
-    def fall_penalty(self):
-        """
-        Return a NEGATIVE penalty (to be ADDED to the step reward) when Mario falls
-        by more than `abs(fall_threshold)` units between last_obs and current_obs.
-        """
-        if self.vars_last_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
-            return
-
-        _, cur_y = self.vars_current_obs['mario_pos']
-        _, last_y = self.vars_last_obs['mario_pos']
-
-        # If Mario dropped more than the threshold (threshold is negative by default),
-        # return the negative penalty so the caller can add it to the reward.
-        if cur_y < last_y + self.fall_threshold_value:
-            self.reward -= float(self.fall_penalty_value)
 
 
     def time_penalty(self):
@@ -465,10 +454,7 @@ class Rewards:
         """
         if self.vars_current_obs is None or self.vars_current_obs.get('time_left') is None:
             return
-        
-        time_left = self.vars_current_obs['time_left']
-        # Apply a small penalty that increases as time runs out (can be tuned)
-        self.reward -= float(self.time_penalty_value) * (1 - time_left / 400)  # assuming max time is 400
+        self.reward -= float(self.time_penalty_value)  # flat penalty per step
 
 
     def coin_reward(self):
@@ -484,8 +470,9 @@ class Rewards:
         if cur_coins > last_coins:
             # Reward for each new coin collected (can be tuned)
             self.reward += float(self.coin_reward_value) * (cur_coins - last_coins)
+        # if cur_coins < last_coins: likely wrapped (got extra life), ignore
 
-    
+
     def power_up_reward(self):
         """
         Computes a reward for collecting power-ups (e.g., mushrooms, fire flowers), which encourages the agent to seek out and utilize power-ups for enhanced abilities.
@@ -499,30 +486,34 @@ class Rewards:
         if cur_mode > last_mode:
             # Reward for powering up (can be tuned based on the mode increase)
             self.reward += float(self.power_up_reward_value) * (cur_mode - last_mode)
-        elif cur_mode < last_mode:
-            # Optional: small penalty for losing power-up status (e.g., getting hit)
+        elif cur_mode < last_mode and cur_mode > 0:  # only penalize if still alive (mode > 0)
             self.reward -= float(self.power_up_reward_value) * (last_mode - cur_mode)
+        # if cur_mode == 0: Mario is dead, death_penalty in get_sensors handles it
 
 
+    # We should check enemy count change for a reward, 
+    # but we should be careful about enemies walking off screen 
+    # (which can cause false positives).
+    # Need to revise for Hunter Task.
     def enemy_kill_reward(self):
         """
         Computes a reward for defeating enemies, which encourages the agent to engage in combat and eliminate threats in the level.
         This can be implemented by tracking the number of enemies in the current and last observations and rewarding based on the decrease.
-        """
-        if self.vars_last_obs is None or self.vars_current_obs.get('enemies') is None or self.vars_last_obs.get('enemies') is None:
+        """        
+        if self.vars_last_obs is None or self.vars_current_obs is None:
             return
         
         cur_enemies = self.vars_current_obs['enemies']
         last_enemies = self.vars_last_obs['enemies']
+        cur_count = len(cur_enemies) if hasattr(cur_enemies, '__len__') else int(cur_enemies)
+        last_count = len(last_enemies) if hasattr(last_enemies, '__len__') else int(last_enemies)
 
-        # Count how many enemies were defeated (assuming enemy count decreases when defeated)
-        if cur_enemies < last_enemies:
-            # Reward for each enemy defeated (can be tuned)
-            # Check if enemy was close to Mario to ensure it's a valid kill (not just an enemy disappearing far away)
-            if self.environment_info is not None and self.environment_info["nearest"]["enemies"] is not None:
-                nearest_enemy_dist = self.environment_info["nearest"]["enemies"][2]
-                if nearest_enemy_dist <= self.shoot_threshold:  # using shoot_threshold as a proxy for valid kill distance
-                    self.reward += float(self.enemy_kill_reward_value) * (last_enemies - cur_enemies)   
+        if cur_count < last_count:
+            # Use last_obs enemies to check proximity (enemy existed in last frame)
+            if self.vars_last_obs is not None and self.vars_last_obs.get('level_scene') is not None:
+                # Simpler heuristic: reward unconditionally if enemy count dropped
+                # (enemy walking off screen is rare in practice)
+                self.reward += float(self.enemy_kill_reward_value) * (last_count - cur_count)
 
 
     def shoot_reward(self):
@@ -538,8 +529,7 @@ class Rewards:
 
         # Reward for shooting when there's a valid target within shoot_threshold
         if should_shoot and nearest_enemy is not None and nearest_enemy[2] <= self.shoot_threshold:
-            # Check if enemy is close enough to be a valid shoot target (using shoot_threshold as a proxy)
-            if self.last_action is not None and len(self.last_action) > 1 and self.last_action[4] == 1:  # assuming action[4] corresponds to shoot
+            if len(self.last_action) > 4 and self.last_action[4] == 1:  # removed redundant None check
                 self.reward += float(self.shoot_reward_value)  # using shoot_reward_value as a proxy for shoot reward
 
 
@@ -552,17 +542,11 @@ class Rewards:
             return
         
         should_duck = self.environment_info["should_duck"]
-        nearest_threat = None
-        if self.environment_info["nearest"]["enemies"] is not None:
-            nearest_threat = self.environment_info["nearest"]["enemies"]
+        nearest_threat = self.environment_info["nearest"]["enemies"]
 
-        # Reward for ducking when there's a valid threat within duck_threshold
         if should_duck and nearest_threat is not None and nearest_threat[2] <= self.duck_threshold:
-            # Check if threat is high enough to be avoided by ducking (using duck_threshold as a proxy for valid duck target)
-            if nearest_threat[1][1] <= self.vars_current_obs['mario_pos'][1] - 1:  # threat's y is at least 1 unit above Mario's y
-                # Check if threat is close enough to be a valid duck target (using duck_threshold as a proxy)
-                if self.last_action is not None and len(self.last_action) > 1 and self.last_action[2] == 1:  # assuming action[2] corresponds to duck
-                    self.reward += float(self.duck_reward_value)  # using duck_reward_value as a proxy for duck reward
+            if len(self.last_action) > 2 and self.last_action[2] == 1:  # adjust index as needed
+                self.reward += float(self.duck_reward_value)
 
 
     def finish_line_bonus(self):
@@ -570,11 +554,10 @@ class Rewards:
         Computes a bonus for reaching or surpassing a certain x position, which approximates the end of the level. 
         This encourages the agent to complete the level rather than just surviving or engaging in combat.
         """
-        if self.vars_current_obs['mario_pos'] is None:
-            return
+        if self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.finish_line_reached:
+            return  # was: self.vars_current_obs['mario_pos'] with no vars_current_obs None guard
         
         cur_x, _ = self.vars_current_obs['mario_pos']
-
-        # Large bonus for finishing the level (approximate end condition)
         if cur_x >= self.finish_line_threshold:
             self.reward += float(self.finish_line_bonus_value)
+            self.finish_line_reached = True  # only reward once

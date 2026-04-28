@@ -70,17 +70,17 @@ def debug_evaluate_population(rewards, population):
 
 
 # Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
-# Population_size is the number of candidate solutions (MLP parameter vectors) in each generation: currently set to 200, which means we evaluate 200 different MLP parameter sets each generation.
-# Generations is how many iterations of the evolutionary process to run: currently set to 300, which means we will evolve the population for 300 generations.
-# Tournament_k is the number of individuals in each tournament: currently set to 4, which means we randomly select 4 individuals and pick the best among them as a parent.
-# Crossover_rate is the probability of performing crossover: currently set to 0.9, which means that 90% of the time we will create a child by combining two parents, and 10% of the time we will just copy one parent (no crossover).
-# Sigma is the mutation strength: currently set to 0.15, which means mutations will add noise with std dev of 0.15 to the parameters.
+# Population_size is the number of candidate solutions (MLP parameter vectors) in each generation: currently set to 20, which means we evaluate 20 different MLP parameter sets each generation.
+# Generations is how many iterations of the evolutionary process to run: currently set to 10, which means we will evolve the population for 10 generations.
+# Tournament_k is the number of individuals in each tournament: currently set to 2, which means we randomly select 2 individuals and pick the best among them as a parent.
+# Crossover_rate is the probability of performing crossover: currently set to 0.8, which means that 80% of the time we will create a child by combining two parents, and 20% of the time we will just copy one parent (no crossover).
+# Sigma is the mutation strength: currently set to 0.1, which means mutations will add noise with std dev of 0.1 to the parameters.
 # Mutation_rate is the probability of mutating each parameter: currently set to 0.2, which means each parameter has a 20% chance of being mutated.
-# Elite_count is how many top individuals to carry over unchanged: currently set to 4, which means the best 4 individuals from each generation will be directly copied to the next generation without any mutation or crossover.
-# Crossover_mask_prob is the per-gene probability of taking a gene from parent1 during crossover: currently set to 0.6, which means that for each parameter, there is a 60% chance it will come from parent1 and a 40% chance it will come from parent2 (uniform crossover).
+# Elite_count is how many top individuals to carry over unchanged: currently set to 1, which means the best individual from each generation will be directly copied to the next generation without any mutation or crossover.
+# Crossover_mask_prob is the per-gene probability of taking a gene from parent1 during crossover: currently set to 0.5, which means that for each parameter, there is a 50% chance it will come from parent1 and a 50% chance it will come from parent2 (uniform crossover).
 def genetic_algorithm(population_size=200, generations=300, tournament_k=4,
-                            crossover_rate=0.9, sigma=0.15, mutation_rate=0.2,
-                            elite_count=4, crossover_mask_prob=0.6):
+                        crossover_rate=0.9, sigma=0.15, mutation_rate=0.2,
+                        elite_count=4, crossover_mask_prob=0.6):
     """
     Evolve MLP weights using a Genetic Algorithm with:
         - Tournament selection (parent selection)

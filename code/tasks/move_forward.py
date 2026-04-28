@@ -9,6 +9,7 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "MoveForward"
+        
 
     def compute_reward(self, current_obs, last_obs):
         """
@@ -31,9 +32,8 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         """
         self.extract_environment(current_obs, last_obs) # Update internal state based on observations (e.g., position, velocity, enemies)
         self.forward_reward()                           # Reward for moving forward (primary objective)
-        self.erratic_movement_penalty()                 # Penalty for erratic movement (e.g., moving backward or staying still)
-        self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior 
-        self.fall_penalty()                             # Penalty for falling
+        self.erratic_movement_penalty()                 # Call ALWAYS after forward_reward. Checks for erratic movement (e.g., moving backward or staying still)
+        self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior. Can use type="to_collect" to encourage jumps that collect items instead of just survival jumps.
         self.time_penalty()                             # Small penalty for each time step to encourage faster completion
         self.finish_line_bonus()                        # Bonus for reaching the finish line
         return self.reward                              # Return the computed reward and reset internal state for next step 
