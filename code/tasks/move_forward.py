@@ -30,13 +30,13 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, and penalizing 
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
-        self.extract_environment(current_obs, last_obs) # Update internal state based on observations (e.g., position, velocity, enemies)
-        self.forward_reward()                           # Reward for moving forward (primary objective)
-        self.erratic_movement_penalty()                 # Call ALWAYS after forward_reward. Checks for erratic movement (e.g., moving backward or staying still)
-        self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior. Can use type="to_collect" to encourage jumps that collect items instead of just survival jumps.
-        self.time_penalty()                             # Small penalty for each time step to encourage faster completion
-        self.finish_line_bonus()                        # Bonus for reaching the finish line
-        return self.reward                              # Return the computed reward and reset internal state for next step 
+        self.environment(current_obs, last_obs)   # Update internal state based on observations (e.g., position, velocity, enemies)
+        self.controls()                           # Reward for using the controls effectively (e.g., not pressing too many buttons at once or none at all), which encourages more strategic and less erratic actions.
+        self.forward()                            # Reward for moving forward (primary objective) and penalize for moving backward or staying still (encourage progress towards the goal)
+        self.jump(to_collect=False)               # Reward for jumping when he should (e.g., to avoid enemies or gaps) and penalize for unnecessary jumps (e.g., jumping in place or when on the ground without obstacles)
+        self.duck(allow_ducking=False)            # Penalty for ducking when it's not allowed (e.g., when it doesn't help avoid a threat or is unnecessary), which encourages the agent to avoid unnecessary ducking that could lead to negative consequences. In this task, we can set allow_ducking=False to discourage ducking since it's not relevant for moving forward and could lead to more erratic behavior.
+        self.obstacles()                          # Reward for successfully navigating obstacles (e.g., jumping over gaps or enemies) and penalize for failing to navigate them (e.g., falling into gaps or colliding with enemies), which encourages the agent to learn how to effectively deal with obstacles while moving forward.
+        return self.reward                        # Return the computed reward and reset internal state for next step 
 
 
     def reset(self):
