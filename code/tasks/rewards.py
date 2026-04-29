@@ -4,7 +4,7 @@ class Rewards:
 
                 controls_reward_value=1.0,                      # reward for taking an action (can be tuned to encourage more active behavior)
                 controls_penalty_value=2.0,                     # penalty for pressing too many buttons at once (e.g., more than 2) to encourage more strategic and less erratic actions
-                controls_button_threshold=4,                    # threshold for number of buttons pressed to start applying the controls penalty (e.g., 3 means penalty starts when pressing 3 or more buttons simultaneously)
+                controls_button_threshold=3,                    # threshold for number of buttons pressed to start applying the controls penalty (e.g., 3 means penalty starts when pressing 3 or more buttons simultaneously)
 
                 forward_reward_value=1.0,                       # base reward for moving forward (positive movement)
                 backward_penalty_value=2.0,                     # base penalty for moving backward (negative movement)
