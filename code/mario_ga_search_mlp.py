@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 import time
 from contextlib import contextmanager
-from evaluation import evaluate_population
+from evaluation import evaluate_population, TASK_TO_SOLVE
 from pathlib import Path
 
 
@@ -46,7 +46,8 @@ def save_best_agent(params, reward):
     Path("data/mlp_best_agents").mkdir(parents=True, exist_ok=True)
     inst = MLPAgent()
     inst.set_param_vector(params)                      # update mlp weights first
-    with open(f'data/mlp_best_agents/ga_seed_{sys.argv[1]}_{reward:.3f}.pkl', 'wb') as f:
+    mode = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
+    with open(f'data/mlp_best_agents/ga_{mode}_seed_{sys.argv[1]}_{reward:.3f}.pkl', 'wb') as f:
         pkl.dump(inst.get_param_vector(), f)               # save the actual agent param vector
     print(f"Saved new best agent with reward {reward:.3f}")
 
@@ -117,6 +118,9 @@ def genetic_algorithm(population_size=200, generations=300, tournament_k=4,
         - Keep elite_count small (1–5);
         - Fix random seed for repeatability.
     """
+    task_label = 'Hunter mode in use' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'Move forward mode in use'
+    print(task_label, flush=True)
+
     agent_class = MLPAgent  # keep class for evaluate_population (used by workers)
     
     # Initialize population with random parameter vectors

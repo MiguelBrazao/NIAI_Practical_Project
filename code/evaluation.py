@@ -9,9 +9,9 @@ import os
 # Variable that configures the number of parallel processes from environment variable, default is 5
 N_PROCESSES = int(os.environ.get('PROCESSES', '5'))
 
-# Task selection via environment variable: 'move_forward' (default) or 'hunter'
-_task_env = os.environ.get('TASK', 'move_forward').lower()
-TASK_TO_SOLVE = HunterTask if _task_env == 'hunter' else MoveForwardTask
+# Task selection via environment variable: 'move_forward' or 'hunter'
+_task_env = os.environ.get('TASK', 'hunter').lower()
+TASK_TO_SOLVE = MoveForwardTask if _task_env == 'move_forward' else HunterTask
 
 # How many levels (episodes) to try per individual evaluation (keeps evals cheaper when set low)
 MAX_LEVEL_TRIES = int(os.environ.get('LEVELS', '5'))
