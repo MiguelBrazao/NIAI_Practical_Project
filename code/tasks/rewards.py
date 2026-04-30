@@ -25,8 +25,9 @@ class Rewards:
         self.vars_current_obs = None        # to store the current observation variables for easy access (e.g., position, coins, enemies) and to avoid repeated unpacking during reward calculations
         self.vars_last_obs = None           # to store the last observation variables for comparison with current observation in reward calculations (e.g., to compute movement, coin collection, enemy kills)
         self.reward = 0.0                   # to store the computed reward for the current step, which can be accessed by the task's get_sensors method to return as part of the fitness packet
+        self.kill_count = 0                 # diagnostic counter: total enemies killed this episode (reset each episode)      
         self.use_progression = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
-        self.use_deaths = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)      
+        self.use_deaths = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
 
 
     def reset(self):
@@ -35,6 +36,7 @@ class Rewards:
         to ensure that reward calculations start fresh and are not influenced by the previous episode's state.
         """
         self.last_sense = None
+        self.kill_count = 0
 
 
     def perform_action(self, action):
@@ -226,7 +228,9 @@ class Rewards:
         )
 
         if enemy_was_close:
-            self.reward += float(self.kills_reward_value) * (last_count - cur_count)
+            n_kills = last_count - cur_count
+            self.kill_count += n_kills
+            self.reward += float(self.kills_reward_value) * n_kills
 
     
     def deaths(self):

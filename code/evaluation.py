@@ -24,13 +24,14 @@ port_list = [4242 + i for i in range(N_PROCESSES)]
 def evaluate_agent(agent, task, episodes=1):
     """
     Evaluates the agent on the task for a given number of episodes.
-    Returns the average fitness (reward).
+    Returns (average_reward, total_kills).
     """
     exp = marioai.Experiment(task, agent)
     # Speed up simulation for training
     exp.max_fps = -1 
     
     total_reward = 0
+    total_kills = 0
 
     for _ in range(episodes):
         episode_reward = 0
@@ -39,6 +40,7 @@ def evaluate_agent(agent, task, episodes=1):
         for _ in range(3):
             rewards = exp.doEpisodes(1)
             episode_reward += task.cum_reward
+            total_kills += task.kill_count  # kill_count resets each doEpisodes via task.reset()
             
             if task.status == 1: # WIN
                 task.level_difficulty += 1
@@ -49,7 +51,7 @@ def evaluate_agent(agent, task, episodes=1):
         total_reward += episode_reward
         
     
-    return total_reward / episodes
+    return total_reward / episodes, total_kills
 
 
 # --- GLOBAL VARIABLES FOR WORKER PROCESSES ---
@@ -96,12 +98,13 @@ def evaluate_individual(ind_info):
     # 2. Run evaluation using the EXISTING connection
     # No "with", no "connect", just use the persistent object.
     try:
-        reward = evaluate_agent(worker_agent, worker_task)
+        reward, kills = evaluate_agent(worker_agent, worker_task)
     except Exception as e:
         print(f"Error in worker: {e}")
         reward = 0
+        kills = 0
         
-    return reward
+    return reward, kills
 
 def evaluate(agent_class, ind_info):
     global worker_agent, worker_task
@@ -120,8 +123,10 @@ def evaluate_population(agent, population):
     # We pass 'tasks' to the initializer, so every worker picks one at startup
     with Pool(processes=n_processes, initializer=init_worker, initargs=(agent,)) as pool:
         # We only map the POPULATION. The tasks are already fixed in the workers.
-        rewards_list = pool.map(evaluate_individual, population)
+        results = pool.map(evaluate_individual, population)
     
     worker_task = None
-        
-    return np.array(rewards_list)
+
+    rewards_list = [r for r, k in results]
+    kills_list = [k for r, k in results]
+    return np.array(rewards_list), np.array(kills_list, dtype=int)

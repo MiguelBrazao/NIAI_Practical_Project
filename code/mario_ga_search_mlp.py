@@ -53,7 +53,7 @@ def save_best_agent(params, reward):
     print(f"\nSaved new best agent with reward {reward:.3f}")
 
 
-def debug_evaluate_population(rewards, tournament_k, elite_count):
+def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
     top = np.argsort(rewards)[::-1][:tournament_k]
     print("\nMax = {:.3f}".format(rewards.max()))
     print("Min = {:.3f}".format(rewards.min()))
@@ -64,12 +64,14 @@ def debug_evaluate_population(rewards, tournament_k, elite_count):
     for i in range(min(5, len(top))):
         print(f"{i+1}: ", rewards[top[i]])
     print(f"Elite Count: {elite_count}")
+    if kills is not None:
+        print(f"Total Kills: {kills.sum()}  |  Mean Kills: {kills.mean():.2f}  |  Max Kills: {kills.max()}")
 
 
 def update_sigma_stagnation(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
-        sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
+        sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
         stagnation_ratio, generations, population_restart_ratio
     ):
     """
@@ -83,11 +85,11 @@ def update_sigma_stagnation(
     Returns:
         current_sigma (float), stagnation_count (int), population (list), rewards (np.ndarray)
     """
-    # Decay sigma when improving, grow it back when stagnating
+    # Decay sigma when improving, grow it back when stagnating (up to sigma_max)
     if new_best_found:
         current_sigma = max(current_sigma * sigma_decay, sigma_min)
     else:
-        current_sigma = min(current_sigma / sigma_decay, sigma)
+        current_sigma = min(current_sigma / sigma_decay, sigma_max)
 
     # Stagnation counter
     if new_best_found:
@@ -104,7 +106,7 @@ def update_sigma_stagnation(
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
             rewards[i] = -float('inf')  # exclude reinitialized from next tournament
-        current_sigma = sigma  # reset to initial sigma on stagnation restart
+        current_sigma = sigma_max  # boost to max sigma on stagnation restart
         stagnation_count = 0
         print(f"\nStagnation Restart")
         print(f"\nReinitialized {n_reinit} individuals")
@@ -120,7 +122,7 @@ def update_sigma_stagnation(
 def genetic_algorithm(
         generations=500, population_size=100, tournament_k=4, elite_count=3, 
         crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
-        sigma=0.5, sigma_decay=0.99, sigma_min=0.1,
+        sigma=0.5, sigma_decay=0.99, sigma_min=0.1, sigma_max=1.5,
         stagnation_ratio=0.05, population_restart_ratio=0.75
     ):
     """
@@ -134,9 +136,10 @@ def genetic_algorithm(
     - crossover_rate:           the probability of performing crossover.
     - crossover_mask_prob:      the per-gene probability of taking a gene from parent1 during crossover.
     - mutation_rate:            the probability of mutating each parameter.
-    - sigma:                    the mutation strength.
+    - sigma:                    the initial mutation strength (also the reset value after stagnation restart).
     - sigma_decay:              multiplicative decay applied to sigma each generation (e.g. 0.95 → halves in ~14 gens).
-    - sigma_min:                floor for sigma decay so mutation never fully stops.
+    - sigma_min:                floor for sigma so mutation never fully stops.
+    - sigma_max:                ceiling for sigma growth during stagnation (defaults to 3 * sigma if None).
     - stagnation_ratio:         fraction of total generations without improvement before reinitializing bottom 
                                 part of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; 
                                 clamped to at least 1).
@@ -167,6 +170,7 @@ def genetic_algorithm(
     print(f"Sigma: {sigma}")
     print(f"Sigma Decay: {sigma_decay}")
     print(f"Sigma Min: {sigma_min}")
+    print(f"Sigma Max: {sigma_max}")
     print(f"Stagnation Ratio: {stagnation_ratio}")
     print(f"Population Restart Ratio: {population_restart_ratio}")
     print(f"\n---------------------------------------------")
@@ -177,11 +181,11 @@ def genetic_algorithm(
     # Initialize population with random parameter vectors    
     num_params = len(MLPAgent().get_param_vector())  # get number of parameters from a fresh agent instance
     population = [np.random.randn(num_params) for _ in range(population_size)] # initialize population with random parameter vectors
-    rewards = evaluate_population(agent_class, population) # Evaluate all individuals in the population and get their rewards
+    rewards, kills = evaluate_population(agent_class, population) # Evaluate all individuals in the population and get their rewards
     best_params = deepcopy(population[np.argmax(rewards)]) # Keep track of the best parameters found so far
     best_reward = rewards.max() # Keep track of the best reward found so far
     
-    debug_evaluate_population(rewards, tournament_k, elite_count) # Print diagnostics about the rewards distribution in the initial population
+    debug_evaluate_population(rewards, tournament_k, elite_count, kills) # Print diagnostics about the rewards distribution in the initial population
     save_best_agent(best_params, best_reward) # Save the best agent from the initial population
     new_best_found = True # Flag to track if a new best agent was found in the current generation (used for saving)
     best_rewards = [best_reward] # Track the best reward of each generation for plotting
@@ -194,7 +198,7 @@ def genetic_algorithm(
     current_sigma, stagnation_count, population, rewards = update_sigma_stagnation(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
-        sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
+        sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
         stagnation_ratio, generations, population_restart_ratio
     )
     new_best_found = False
@@ -239,9 +243,10 @@ def genetic_algorithm(
 
         # Advance to new population; evaluate only offspring, carry elite rewards forward
         population = new_population
-        offspring_rewards = evaluate_population(agent_class, population[elite_count:])
+        offspring_rewards, offspring_kills = evaluate_population(agent_class, population[elite_count:])
         rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
-        debug_evaluate_population(rewards, tournament_k, elite_count)
+        kills = np.concatenate([np.zeros(elite_count, dtype=int), offspring_kills])
+        debug_evaluate_population(rewards, tournament_k, elite_count, kills)
 
         # Track global best: check both the old elite (carried forward) and the new population's best
         new_pop_best_idx = np.argmax(rewards)
@@ -268,7 +273,7 @@ def genetic_algorithm(
         current_sigma, stagnation_count, population, rewards = update_sigma_stagnation(
             new_best_found, current_sigma, stagnation_count,
             population, rewards, num_params,
-            sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
+            sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
             stagnation_ratio, generations, population_restart_ratio
         )
         new_best_found = False
