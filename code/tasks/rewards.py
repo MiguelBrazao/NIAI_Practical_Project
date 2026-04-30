@@ -34,6 +34,8 @@ class Rewards:
                 enemy_kills_reward_value=1.0,                   # reward for defeating enemies (encourages combat and threat elimination)
                 
                 death_penalty_value=100.0,                      # penalty for dying (can be tuned to balance with other rewards)                
+                
+                terminal_distance_scale=1.0,                    # divisor applied to sense.distance in the terminal reward (e.g. 16.0 converts world-pixels to grid cells, bringing it into the same scale as per-step rewards)
                 ):
         
         # Reward parameters (can be tuned for different behaviors)
@@ -69,6 +71,8 @@ class Rewards:
         self.enemy_kills_reward_value = enemy_kills_reward_value
 
         self.death_penalty_value = death_penalty_value
+        
+        self.terminal_distance_scale = terminal_distance_scale
 
         # Tracking variables for reward computation
         self.last_action = None             # [backward, forward, crouch, jump, speed/bombs]
@@ -114,7 +118,7 @@ class Rewards:
         # Fitness packet (no level scene)
         if sense.level_scene is None:
             self.status = sense.status
-            terminal_reward = sense.distance
+            terminal_reward = sense.distance / float(self.terminal_distance_scale)
             if self.status != 1:
                 terminal_reward -= float(self.death_penalty_value)
             self.reward = terminal_reward
@@ -434,8 +438,8 @@ class Rewards:
         # should_jump (to_survive):
         # - enemy in front at same level or below mario (y >= mario_y) within jump_threshold
         # - enemy directly below within jump_threshold
-        # - wall or elevated platform (hard/soft obstacle, bricks, question bricks) at Mario's row or above, within jump_threshold
-        #   (ground tiles at y > mario_y are excluded to avoid always-True false positives)
+        # - terrain in front (hard/soft obstacle, bricks, question bricks, walls, enemy obstacles) at Mario's row or
+        #   above within jump_threshold (ground tiles at y > mario_y excluded to avoid always-True false positives)
         should_jump_flags = {"to_survive": False, "to_collect": False}
 
         enemy_in_front_low = (
@@ -447,15 +451,19 @@ class Rewards:
             nearest_enemy_below is not None and
             nearest_enemy_below[2] <= self.jump_threshold
         )
-        # obstacle_in_front: wall/boundary or elevated platform at Mario's row or above only.
-        # Excludes ground tiles (y > mario_y) to avoid always-True false positives,
-        # and excludes empty_space (air is not an obstacle requiring a jump).
-        # "walls" (unknown cell values) are included — they are solid boundary terrain.
+        # obstacle_in_front: any terrain cell in front at Mario's row or above within jump_threshold.
+        # Scans the raw per-category lists rather than nearest[cat] so a closer ground tile of the
+        # same category cannot mask a level-blocking obstacle at Mario's height.
+        # Excludes empty_space (air) and y > mario_y (ground tiles below Mario's feet).
+        # Includes enemy_obstacles (value=20) — solid objects Mario must jump over.
         obstacle_in_front = any(
-            nearest[cat] is not None and
-            nearest[cat][2] <= self.jump_threshold and
-            nearest[cat][1][1] <= mario_y  # at or above Mario's row, not ground
-            for cat in {"soft_obstacles", "hard_obstacles", "bricks", "question_bricks", "walls"}
+            cell[2] <= self.jump_threshold and cell[1][1] <= mario_y
+            for lst in (
+                soft_obstacles_in_front, hard_obstacles_in_front,
+                bricks_in_front, question_bricks_in_front,
+                walls_in_front, enemy_obstacles_in_front,
+            )
+            for cell in lst
         )
         if enemy_in_front_low or enemy_directly_below or obstacle_in_front:
             should_jump_flags["to_survive"] = True
@@ -661,7 +669,7 @@ class Rewards:
         last_mx, _ = self.vars_last_obs['mario_pos']
         dx_cells = (cur_mx - last_mx) / cell_size  # positive when Mario moves forward (right)
 
-        passable_cats = {"soft_obstacles", "empty_space", "bricks", "question_bricks", "walls"}
+        passable_cats = {"soft_obstacles", "empty_space", "bricks", "question_bricks", "walls", "enemy_obstacles"}
         all_cats = passable_cats | {"hard_obstacles"}
 
         # Case 1: obstacle was in front last step
