@@ -3,3 +3,8 @@ como correr random search.txt
 
 # Python
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Nested cache folders from training/runs
+code/**/__pycache__/

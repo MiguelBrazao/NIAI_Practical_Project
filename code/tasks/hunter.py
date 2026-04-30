@@ -10,6 +10,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
+        #self.distance_reward_ratio = 0.5 # Reduce emphasis on distance to encourage more aggressive enemy engagement
 
     def compute_reward(self, current_obs, last_obs):
         """
@@ -32,11 +33,12 @@ class HunterTask(marioai.Task, rewards.Rewards):
         """
 
         self.observations(current_obs, last_obs)    # Update internal state based on current and last observations (e.g. track enemy counts for kill rewards)
-        self.progression()                        # Compute final raw reward based on distance traveled forward (primary objective)
+        #self.progression()                        # Compute final raw reward based on distance traveled forward (primary objective)
         self.kills()                                # Reward for defeating enemies (secondary: encourages combat and threat elimination)    
-        return self.reward                          # Return the computed reward and reset internal state for next step
-    
-        
+        return self.reward                          # Return the computed reward and reset internal state for next step    
+        #self.coins()                                # Reward for collecting coins (primary objective)
+        #self.power_ups()                            # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
+
     def reset(self):
         marioai.Task.reset(self)
         rewards.Rewards.reset(self)
