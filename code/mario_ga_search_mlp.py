@@ -97,7 +97,7 @@ def update_sigma_stagnation(
 
     # Stagnation restart
     if stagnation_count >= stagnation_limit:
-        n_reinit = population_size // 2
+        n_reinit = population_size // 3
         worst_idx = np.argsort(rewards)[:n_reinit]
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
@@ -116,10 +116,10 @@ def update_sigma_stagnation(
 
 
 def genetic_algorithm(
-                    population_size=40, generations=100, tournament_k=4, 
-                    crossover_rate=0.9, sigma=0.25, mutation_rate=0.3, 
-                    elite_count=4, crossover_mask_prob=0.5,
-                    stagnation_ratio=0.05, sigma_decay=0.95, sigma_min=0.05):
+                    population_size=60, generations=100, tournament_k=3, 
+                    crossover_rate=0.9, sigma=0.25, mutation_rate=0.4, 
+                    elite_count=2, crossover_mask_prob=0.5,
+                    stagnation_ratio=0.1, sigma_decay=0.99, sigma_min=0.15):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
     

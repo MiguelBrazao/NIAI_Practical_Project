@@ -5,26 +5,27 @@ class Rewards:
                 controls_reward_value=0.5,                      # reward for taking an action — kept small so button-press signals don't drown out forward/jump rewards
                 controls_penalty_value=2.0,                     # penalty for pressing too many buttons at once (e.g., more than 2) to encourage more strategic and less erratic actions
                 controls_button_threshold=3,                    # threshold for number of buttons pressed to start applying the controls penalty (e.g., 3 means penalty starts when pressing 3 or more buttons simultaneously)
+                run_approach_threshold=4.0,                     # wider look-ahead for run-up: reward holding speed when a jump-worthy obstacle is within this range but not yet within jump_threshold
 
                 forward_reward_value=2.0,                       # base reward for moving forward — primary objective, must dominate per-step signals
                 backward_penalty_value=2.0,                     # base penalty for moving backward (negative movement)
                 still_penalty_value=2.0,                        # penalty for not moving (movement = 0)
 
                 jump_reward_value=2.0,                          # reward for jumping when beneficial — clearing terrain is harder than walking, worth more than one forward step
-                jump_penalty_value=2.0,                         # penalty for jumping when it's not beneficial (e.g., unnecessary jump that could lead to danger, determined by environment info)
-                jump_threshold=3.0,                             # threshold for determining a jump action based on the distance to the nearest relevant obstacle/enemy (can be tuned for different behaviors)
+                jump_penalty_value=2.0,                         # penalty for not jumping when beneficial — modest signal; the jump_pressed guard already prevents penalising the correct press-jump frame, so high values are not needed and create catastrophic per-frame drain that teaches the GA to avoid walls entirely
+                jump_threshold=2.5,                             # threshold for determining a jump action based on the distance to the nearest relevant obstacle/enemy (can be tuned for different behaviors)
 
                 duck_reward_value=1.0,                          # reward for ducking when it's beneficial (e.g., to avoid a projectile or low enemy, determined by environment info)
                 duck_penalty_value=2.0,                         # penalty for ducking when it's not beneficial (e.g., unnecessary duck that could lead to danger, determined by environment info)
-                duck_threshold=1.0,                             # threshold for determining a duck action based on the distance to the nearest obstacle/enemy (can be tuned for different behaviors)
+                duck_threshold=1.5,                             # threshold for determining a duck action based on the distance to the nearest obstacle/enemy (can be tuned for different behaviors)
 
                 shoot_reward_value=1.0,                         # reward for shooting when it's beneficial (e.g., to defeat an enemy, determined by environment info)
                 shoot_penalty_value=2.0,                        # penalty for shooting when it's not beneficial (e.g., unnecessary shooting that could lead to danger, determined by environment info)
-                shoot_threshold=3.0,                            # threshold for determining a shoot action based on the distance to the nearest enemy (can be tuned for different behaviors)
+                shoot_threshold=2.5,                            # threshold for determining a shoot action based on the distance to the nearest enemy (can be tuned for different behaviors)
 
                 obstacles_reward_value=2.0,                     # reward for transposing an obstacle — must exceed obstacles_penalty_value so clearing is always more attractive than stagnating
-                obstacles_penalty_value=1.0,                    # penalty for being close to hard obstacles or far from soft obstacles
-                obstacles_threshold=3.0,                        # max grid-cell distance at which an obstacle is considered "close enough" to track for transposition
+                obstacles_penalty_value=0.3,                    # penalty per passable obstacle category still in front — kept small because multiple categories fire simultaneously near a wall (walls+bricks+hard all within threshold = several penalties/frame), causing catastrophic drain that dwarfs the jump signal
+                obstacles_threshold=2.5,                        # max grid-cell distance at which an obstacle is considered "close enough" to track for transposition
 
                 coins_reward_value=1.0,                         # small reward for collecting coins (encourages exploration and coin collection)
 
@@ -34,7 +35,7 @@ class Rewards:
                 enemy_kills_reward_value=1.0,                   # reward for defeating enemies (encourages combat and threat elimination)
                 
                 death_penalty_value=100.0,                      # penalty for dying (can be tuned to balance with other rewards)                
-                
+
                 terminal_distance_scale=16.0,                   # divides sense.distance (raw world-pixels) by cell_size to convert to grid cells, keeping terminal reward in the same scale as per-step rewards
                 ):
         
@@ -42,6 +43,7 @@ class Rewards:
         self.controls_reward_value = controls_reward_value
         self.controls_penalty_value = controls_penalty_value
         self.controls_button_threshold = controls_button_threshold
+        self.run_approach_threshold = run_approach_threshold
 
         self.forward_reward_value = forward_reward_value
         self.backward_penalty_value = backward_penalty_value
@@ -71,7 +73,7 @@ class Rewards:
         self.enemy_kills_reward_value = enemy_kills_reward_value
 
         self.death_penalty_value = death_penalty_value
-        
+
         self.terminal_distance_scale = terminal_distance_scale
 
         # Tracking variables for reward computation
@@ -451,21 +453,38 @@ class Rewards:
             nearest_enemy_below is not None and
             nearest_enemy_below[2] <= self.jump_threshold
         )
-        # obstacle_in_front: any terrain cell in front at Mario's row or above within jump_threshold.
+        # obstacle_in_front: any SOLID terrain cell in front at Mario's row or above within jump_threshold.
         # Scans the raw per-category lists rather than nearest[cat] so a closer ground tile of the
         # same category cannot mask a level-blocking obstacle at Mario's height.
-        # Excludes empty_space (air) and y > mario_y (ground tiles below Mario's feet).
+        # Excludes empty_space (air), y > mario_y (ground tiles below Mario's feet),
+        # and soft_obstacles (value=-11, passable tiles — Mario can walk through them, so they
+        # must NOT trigger should_jump; including them causes false jumps at terrain drops).
         # Includes enemy_obstacles (value=20) — solid objects Mario must jump over.
         obstacle_in_front = any(
             cell[2] <= self.jump_threshold and cell[1][1] <= mario_y
             for lst in (
-                soft_obstacles_in_front, hard_obstacles_in_front,
+                hard_obstacles_in_front,
                 bricks_in_front, question_bricks_in_front,
                 walls_in_front, enemy_obstacles_in_front,
             )
             for cell in lst
         )
+
+        # Persist should_jump across the entire jump arc.
+        # The 22x22 grid is always centered on Mario: when Mario rises, the grid scrolls up and
+        # any obstacle that was at row=11 (Mario's row) appears at row=12, 13… (below center).
+        # The y-filter above then excludes it immediately, so obstacle_in_front goes False after
+        # just 1-2 frames — the MLP sees no reason to keep holding jump and produces only a
+        # short hop.  Fix: once should_jump fires on the ground, hold it True until Mario lands.
+        currently_on_ground = self.vars_current_obs.get('on_ground', True)
+        last_should_jump = (
+            self.last_environment_info is not None and
+            self.last_environment_info["should_jump"]["to_survive"]
+        )
         if enemy_in_front_low or enemy_directly_below or obstacle_in_front:
+            should_jump_flags["to_survive"] = True
+        elif not currently_on_ground and last_should_jump:
+            # Airborne and was already in a should-jump arc — keep signal alive until landing
             should_jump_flags["to_survive"] = True
 
         # should_jump (to_collect):
@@ -507,10 +526,28 @@ class Rewards:
         self.environment_info["should_jump"] = should_jump_flags
         self.environment_info["should_run_shoot"] = should_run_shoot
         self.environment_info["should_duck"] = should_duck
+
+        # should_run_approach: a solid obstacle requiring a jump is detected further ahead
+        # (within run_approach_threshold). Mario should hold speed+forward to build momentum
+        # so that when he jumps at jump_threshold distance he has enough horizontal velocity
+        # to clear the obstacle. Critical for drop+elevation combos: the drop lowers Mario's
+        # baseline, so extra run-up momentum is needed to reach the elevated platform top.
+        run_approach_obstacle = any(
+            cell[2] <= self.run_approach_threshold and cell[1][1] <= mario_y
+            for lst in (
+                hard_obstacles_in_front,
+                bricks_in_front, question_bricks_in_front,
+                walls_in_front, enemy_obstacles_in_front,
+            )
+            for cell in lst
+        )
+        self.environment_info["should_run_approach"] = run_approach_obstacle
+
         self.environment_info["thresholds"] = {
             "jump": self.jump_threshold,
             "shoot": self.shoot_threshold,
-            "duck": self.duck_threshold
+            "duck": self.duck_threshold,
+            "run_approach": self.run_approach_threshold,
         }
 
 
@@ -533,9 +570,14 @@ class Rewards:
                 else:
                     # All other combinations within the threshold get a small reward to encourage taking actions (can be tuned to encourage more active behavior)
                     self.reward += float(self.controls_reward_value) * buttons_pressed  # small reward for taking actions (can be tuned to encourage more active behavior)
-                # Give an extra reward for pressing the speed button (index 4) when should_run_shoot is True, to encourage using speed/shoot strategically when there are nearby enemies
+                # Give an extra reward for pressing the speed button (index 4).
+                # When approaching a jump-worthy obstacle (should_run_approach), the bonus
+                # matches forward_reward_value so run+forward is the dominant per-step signal,
+                # teaching the agent to sprint toward elevations before jumping.
                 if len(self.last_action) > 4 and self.last_action[4] == 1:
-                    self.reward += float(self.controls_reward_value) # extra reward for speeding
+                    self.reward += float(self.controls_reward_value)  # base speed reward
+                    if self.environment_info is not None and self.environment_info.get("should_run_approach", False):
+                        self.reward += float(self.forward_reward_value)  # approach bonus: makes speed as valuable as a forward step
             else:
                 # No buttons pressed - apply a penalty to encourage taking actions (can be tuned to encourage more active behavior)
                 self.reward -= float(self.controls_penalty_value)  # penalty for not taking any action (encourages more active behavior)
@@ -591,14 +633,26 @@ class Rewards:
         _, cur_y = self.vars_current_obs['mario_pos']
         _, last_y = self.vars_last_obs['mario_pos']
 
+        on_ground = self.vars_current_obs.get('on_ground', True)
+
         if should_jump(to_collect=to_collect) and cur_y > last_y:
-            # Reward for jumping when it's beneficial (e.g., to avoid enemies or gaps, determined by environment info) and actually moving upwards, which encourages the agent to use jumping strategically for survival and item collection.
+            # Reward for jumping when it's beneficial and actually rising — positive signal for the whole ascending arc.
             self.reward += self.jump_reward_value
-        elif should_jump(to_collect=to_collect) and cur_y <= last_y:
-            # Penalty for not jumping when it would be beneficial (e.g., failing to jump to avoid an enemy or gap, determined by environment info), which encourages the agent to recognize and act on opportunities to jump that could lead to better outcomes.
-            self.reward -= self.jump_penalty_value
-        elif not should_jump(to_collect=to_collect) and cur_y > last_y:
-            # Penalty for jumping when it's not beneficial (e.g., unnecessary jump that could lead to danger, determined by environment info) and actually moving upwards, which encourages the agent to avoid unnecessary jumps that could lead to negative consequences.
+        elif should_jump(to_collect=to_collect) and cur_y <= last_y and on_ground:
+            # Penalty only when Mario is on the ground AND did not press jump.
+            # Critical 1-frame lag fix: pressing jump does not make Mario rise in the same frame
+            # (physics applies next tick). Without this guard, the frame where action[3]=1 is
+            # pressed still has cur_y == last_y, so it hits this branch and earns -8 even though
+            # the correct button was pressed. That makes net reward for a full jump ≈ -8 + N*2,
+            # which is negative for short hops and barely positive for tall ones — the GA
+            # strongly avoids pressing jump at all.
+            jump_pressed = self.last_action is not None and len(self.last_action) > 3 and self.last_action[3] == 1
+            if not jump_pressed:
+                self.reward -= self.jump_penalty_value
+        elif not should_jump(to_collect=to_collect) and cur_y > last_y and on_ground:
+            # Penalty for jumping off the ground unnecessarily (when no obstacle/enemy requires it).
+            # Guard with on_ground: once airborne, should_jump can flip False mid-arc as Mario clears
+            # the obstacle, but penalising the rest of the ascent would actively cut the jump short.
             self.reward -= self.jump_penalty_value
 
 
