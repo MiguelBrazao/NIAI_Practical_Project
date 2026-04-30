@@ -119,7 +119,7 @@ def genetic_algorithm(
                     population_size=40, generations=100, tournament_k=4, 
                     crossover_rate=0.9, sigma=0.25, mutation_rate=0.3, 
                     elite_count=4, crossover_mask_prob=0.5,
-                    stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05):
+                    stagnation_ratio=0.05, sigma_decay=0.95, sigma_min=0.05):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
     
