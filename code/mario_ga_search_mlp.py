@@ -108,7 +108,7 @@ def update_sigma_stagnation(
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
             rewards[i] = -float('inf')  # exclude reinitialized from next tournament
-        current_sigma = sigma  # reset to initial sigma on stagnation restart
+        current_sigma = sigma_max  # boost to sigma_max on restart for maximum exploration with fresh individuals
         stagnation_count = 0
         print(f"\nStagnation Restart")
         print(f"\nReinitialized {n_reinit} individuals")
@@ -124,7 +124,7 @@ def update_sigma_stagnation(
 def genetic_algorithm(
         generations=500, population_size=100, tournament_k=4, elite_count=3, 
         crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
-        sigma=0.5, sigma_decay=0.8, sigma_min=0.1, sigma_max=1.5,
+        sigma=0.5, sigma_decay=0.99, sigma_min=0.1, sigma_max=1.5,
         stagnation_ratio=0.05, population_restart_ratio=0.75
     ):
     """
