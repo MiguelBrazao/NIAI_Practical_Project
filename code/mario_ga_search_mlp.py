@@ -65,7 +65,9 @@ def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
         print(f"{i+1}: ", rewards[top[i]])
     print(f"Elite Count: {elite_count}")
     if kills is not None:
-        print(f"Total Kills: {kills.sum()}  |  Mean Kills: {kills.mean():.2f}  |  Max Kills: {kills.max()}")
+        print(f"\nTotal Kills: {kills.sum()}")
+        print(f"Mean Kills: {kills.mean():.2f}")
+        print(f"Max Kills: {kills.max()}")
 
 
 def update_sigma_stagnation(
