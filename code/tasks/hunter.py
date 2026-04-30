@@ -31,8 +31,8 @@ class HunterTask(marioai.Task, rewards.Rewards):
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
 
-        self.observations(current_obs, last_obs) 
-        self.distance()                             # Compute final raw reward based on distance traveled forward (primary objective)
+        self.observations(current_obs, last_obs)    # Update internal state based on current and last observations (e.g. track enemy counts for kill rewards)
+        # self.distance()                           # Compute final raw reward based on distance traveled forward (primary objective)
         self.coins()                                # Reward for collecting coins (primary objective)
         self.power_ups()                            # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
         self.kills()                                # Reward for defeating enemies (secondary: encourages combat and threat elimination)    
