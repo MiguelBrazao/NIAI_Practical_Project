@@ -30,8 +30,8 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, and penalizing 
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
-        
-        self.distance()                             # Compute final raw reward based on distance traveled forward (primary objective)
+
+        self.progression()                          # Compute final raw reward based on level progression (distance traveled forward)
         return self.reward                          # Return the computed reward and reset internal state for next step 
 
 

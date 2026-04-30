@@ -116,9 +116,9 @@ class Rewards:
         self.vars_last_obs = vars(last_obs) if last_obs is not None else None
 
 
-    def distance(self):
+    def progression(self):
         """
-        Computes a reward based on the distance to the finish line, which encourages the agent to
+        Computes a reward based on the distance traveled, which encourages the agent to
           make progress towards completing the level. This can be used as a terminal reward when 
           the episode ends (e.g., when Mario reaches the finish line or dies) to reflect how 
           close the agent was to finishing the level.
