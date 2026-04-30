@@ -62,7 +62,7 @@ class MLPAgent(marioai.Agent):
         self.mlp = MLP(self.input_dim, self.output_dim)
 
         # Action threshold
-        self.threshold = 0.25 # Threshold for converting MLP outputs to binary actions
+        self.threshold = 0.5 # Threshold for converting MLP outputs to binary actions
 
 
     def sense(self, obs):
@@ -85,22 +85,12 @@ class MLPAgent(marioai.Agent):
 
         full_window = self.level_scene # 22x22 grid
 
-        # Use the full_window grid center for window extraction (Mario is centered at 11,11)
-        cx, cy = 11, 11
-        x_min = max(0, cx - 3)
-        x_max = min(21, cx + 3)
-        y_min = max(0, cy - 3)
-        y_max = min(21, cy + 3)
-
-        # Extract window and pad if necessary
-        window = np.zeros((7, 7), dtype=full_window.dtype)
-        win_x_min = 3 - (cx - x_min)
-        win_x_max = 3 + (x_max - cx) + 1
-        win_y_min = 3 - (cy - y_min)
-        win_y_max = 3 + (y_max - cy) + 1
-
-        # Copy the valid part of the full_window into the window
-        window[win_y_min:win_y_max, win_x_min:win_x_max] = full_window[y_min:y_max+1, x_min:x_max+1]
+        # Asymmetric 7x7 window: 1 col behind Mario, Mario's col, 5 cols ahead.
+        # Mario is fixed at (col=11, row=11) in the 22x22 grid, so all indices
+        # are always in-bounds — no padding required.
+        #   cols: 10 (behind) … 16 (5 ahead)
+        #   rows:  8 (3 above) … 14 (3 below)
+        window = full_window[8:15, 10:17]   # shape (7, 7)
         scene_flat = window.flatten()  # 49 values
 
         # Mario position (keep as feature inputs)

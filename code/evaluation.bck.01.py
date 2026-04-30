@@ -6,19 +6,19 @@ from tasks import MoveForwardTask, HunterTask
 import numpy as np
 import os
 
-# Variable that configures the number of parallel processes
-N_PROCESSES = 5
-# Task Definition
-# TASK_TO_SOLVE = MoveForwardTask#HunterTask
+# Variable that configures the number of parallel processes from environment variable, default is 5
+N_PROCESSES = int(os.environ.get('PROCESSES', '5'))
 
 # Task selection via environment variable: 'move_forward' or 'hunter'
 _task_env = os.environ.get('TASK', 'hunter').lower()
 TASK_TO_SOLVE = MoveForwardTask if _task_env == 'move_forward' else HunterTask
 
+# How many levels (episodes) to try per individual evaluation (keeps evals cheaper when set low)
+MAX_LEVEL_TRIES = int(os.environ.get('LEVELS', '5'))
+
 # Visualization toggle: set GRAPHICS=0 to disable visualization during training (default ON)
 _vis_env = os.environ.get('GRAPHICS', '1').lower()
 VISUALIZE = False if _vis_env in ('0', 'false', 'no') else True
-
 
 port_list = [4242 + i for i in range(N_PROCESSES)]
 def evaluate_agent(agent, task, episodes=1):
@@ -35,20 +35,18 @@ def evaluate_agent(agent, task, episodes=1):
     for _ in range(episodes):
         episode_reward = 0
         task.level_difficulty = 0
-        # Try up to 3 levels of increasing difficulty
-        for _ in range(3):
+        # Try up to MAX_LEVEL_TRIES levels of increasing difficulty
+        for _ in range(MAX_LEVEL_TRIES):
             rewards = exp.doEpisodes(1)
             episode_reward += task.cum_reward
-            
+
             if task.status == 1: # WIN
                 task.level_difficulty += 1
             else:
                 break
-        
-                
+            
         total_reward += episode_reward
         
-    
     return total_reward / episodes
 
 
@@ -76,7 +74,8 @@ def init_worker(agent_class):
 
     worker_agent = agent_class()
     if worker_task is None:
-        worker_task = TASK_TO_SOLVE(visualization=True, port=port, init_mario_mode=0)
+        # Visualization is optional (default ON); controlled by MARIO_VIS env var
+        worker_task = TASK_TO_SOLVE(visualization=VISUALIZE, port=port, init_mario_mode=0)
 
 
 def evaluate_individual(ind_info):
@@ -103,24 +102,26 @@ def evaluate_individual(ind_info):
         
     return reward
 
+
 def evaluate(agent_class, ind_info):
     global worker_agent, worker_task
     if worker_agent is None:
         worker_agent = agent_class()
     if worker_task is None:
-        worker_task = TASK_TO_SOLVE(visualization=True, port=port_list[0])
+        worker_task = TASK_TO_SOLVE(visualization=VISUALIZE, port=port_list[0])
     return evaluate_individual(ind_info)
 
 
 def evaluate_population(agent, population):
-    
     # Match processes to tasks to avoid one worker being idle or double-booking
     n_processes = N_PROCESSES
 
     # We pass 'tasks' to the initializer, so every worker picks one at startup
+    # Use a chunksize to reduce IPC/map overhead when populations are large
+    chunksize = max(1, len(population) // (n_processes * 4))
     with Pool(processes=n_processes, initializer=init_worker, initargs=(agent,)) as pool:
         # We only map the POPULATION. The tasks are already fixed in the workers.
-        rewards_list = pool.map(evaluate_individual, population)
+        rewards_list = pool.map(evaluate_individual, population, chunksize)
     
     worker_task = None
         
