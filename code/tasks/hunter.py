@@ -31,20 +31,13 @@ class HunterTask(marioai.Task, rewards.Rewards):
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
 
-        self.extract_environment(current_obs, last_obs) # Update internal state based on observations (e.g., position, velocity, enemies)
-        self.enemy_kill_reward()                        # Reward for killing enemies (primary objective)
-        self.forward_reward()                           # Reward for moving forward (secondary: encourages exploration to find enemies)
-        self.erratic_movement_penalty()                 # Call ALWAYS after forward_reward. Checks for erratic movement (e.g., moving backward or staying still)
-        return self.reward                              # Return the computed reward and reset internal state for next step
-        
-        # What is in the move_forward.py
-        # self.extract_environment(current_obs, last_obs) # Update internal state based on observations (e.g., position, velocity, enemies)
-        # self.forward_reward()                           # Reward for moving forward (primary objective)
-        # self.erratic_movement_penalty()                 # Call ALWAYS after forward_reward. Checks for erratic movement (e.g., moving backward or staying still)
-        # self.jump_reward()                              # Optional: small reward for jumping to encourage more dynamic behavior. Can use type="to_collect" to encourage jumps that collect items instead of just survival jumps.
-        # self.time_penalty()                             # Small penalty for each time step to encourage faster completion
-        # self.finish_line_bonus()                        # Bonus for reaching the finish line
-        # return self.reward   
+        self.observations(current_obs, last_obs) 
+        self.distance()                             # Compute final raw reward based on distance traveled forward (primary objective)
+        self.coins()                                # Reward for collecting coins (primary objective)
+        self.power_ups()                            # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
+        self.kills()                                # Reward for defeating enemies (secondary: encourages combat and threat elimination)    
+        return self.reward                          # Return the computed reward and reset internal state for next step
+    
         
     def reset(self):
         marioai.Task.reset(self)
