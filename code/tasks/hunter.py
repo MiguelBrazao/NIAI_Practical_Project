@@ -37,6 +37,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         self.observations(current_obs, last_obs)    # Update internal state with current and last observations for reward calculations and get_sensors access
         self.progression()                          # Compute reward based on level progression (distance traveled forward) -- primary objective to encourage forward movement and level completion
         self.kills()                                # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
+        return self.reward                          # Return the computed reward and reset internal state for next step
 
 
     def reset(self):
