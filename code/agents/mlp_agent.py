@@ -62,7 +62,8 @@ class MLPAgent(marioai.Agent):
         scene_flat = (window.flatten() - 15.5) / 26.5  # center+scale tile values [-11,42] → [-1,1]
 
         # Mario position normalized to [-1, 1]
-        mario_pos = np.array([(self.mario_floats[0] - 1200.0) / 1200.0, (self.mario_floats[1] - 127.5) / 127.5])
+        # Level is 200 tiles × 16px = 3200px wide; y range ~[0, 255]
+        mario_pos = np.array([(self.mario_floats[0] - 1600.0) / 1600.0, (self.mario_floats[1] - 127.5) / 127.5])
 
         # Boolean flags mapped to {-1, 1}
         flags = np.array([2.0 * float(self.can_jump) - 1.0, 2.0 * float(self.on_ground) - 1.0])

@@ -10,7 +10,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
-        self.progression_reward_ratio = 1/1200      # test between 2400 and 600 -- accumulates after episode of steps
+        self.progression_reward_ratio = 1/3200      # test between 3200 (level width) and 800 -- accumulates after episode of steps
         self.kills_reward_value = 5.0               # test between 1.0 and 10.0 -- accumulates per step
 
 
