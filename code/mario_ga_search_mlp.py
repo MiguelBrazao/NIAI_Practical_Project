@@ -119,7 +119,7 @@ def genetic_algorithm(
                     population_size=40, generations=100, tournament_k=4, 
                     crossover_rate=0.9, sigma=0.9, mutation_rate=0.9, 
                     elite_count=1, crossover_mask_prob=0.5,
-                    stagnation_ratio=0.025, sigma_decay=0.95, sigma_min=0.1):
+                    stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.1):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
     
@@ -212,6 +212,8 @@ def genetic_algorithm(
     debug_evaluate_population(rewards) # Print diagnostics about the rewards distribution in the initial population
     save_best_agent(best_params, best_reward) # Save the best agent from the initial population
     new_best_found = True # Flag to track if a new best agent was found in the current generation (used for saving)
+    best_rewards = [best_reward] # Track the best reward of each generation for plotting
+    mean_rewards = [rewards.mean()] # Track the mean reward of each generation for plotting
 
     stagnation_count = 0   # generations since last improvement
     current_sigma = sigma  # sigma decays each generation toward sigma_min
@@ -224,9 +226,6 @@ def genetic_algorithm(
         stagnation_ratio, generations
     )
     new_best_found = False
-
-    best_rewards = [best_reward] # Track the best reward of each generation for plotting
-    mean_rewards = [rewards.mean()] # Track the mean reward of each generation for plotting
     
     # Main evolutionary loop
     for generation in range(2, generations + 1):
@@ -286,6 +285,11 @@ def genetic_algorithm(
         if new_best_found:
             save_best_agent(best_params, best_reward)
 
+        # Snapshot best/mean BEFORE stagnation update: the restart sets some rewards
+        # to -inf which would corrupt rewards.mean() and rewards.max() for the plot.
+        best_rewards.append(rewards.max())
+        mean_rewards.append(rewards.mean())
+
         # Sigma decay + stagnation restart
         current_sigma, stagnation_count, population, rewards = update_sigma_stagnation(
             new_best_found, current_sigma, stagnation_count,
@@ -294,9 +298,6 @@ def genetic_algorithm(
             stagnation_ratio, generations
         )
         new_best_found = False
-
-        best_rewards.append(rewards.max())
-        mean_rewards.append(rewards.mean())
 
     make_evolution_plot(best_rewards, mean_rewards, "GA", True)
     inst = MLPAgent()
