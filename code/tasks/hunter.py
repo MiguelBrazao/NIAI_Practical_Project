@@ -10,6 +10,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
+        
 
     def compute_reward(self, current_obs, last_obs):
         """
