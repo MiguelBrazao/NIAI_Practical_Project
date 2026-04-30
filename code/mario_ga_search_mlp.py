@@ -116,7 +116,7 @@ def update_sigma_stagnation(
 
 
 def genetic_algorithm(
-                    population_size=60, generations=100, tournament_k=3, 
+                    population_size=60, generations=300, tournament_k=3, 
                     crossover_rate=0.9, sigma=0.25, mutation_rate=0.4, 
                     elite_count=2, crossover_mask_prob=0.5,
                     stagnation_ratio=0.1, sigma_decay=0.99, sigma_min=0.15):
