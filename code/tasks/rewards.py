@@ -174,7 +174,7 @@ class Rewards:
         cur_coins = self.vars_current_obs['coins']
         last_coins = self.vars_last_obs['coins']
 
-        if cur_coins > last_coins:
+        if cur_coins != last_coins: #
             # Reward for each new coin collected (can be tuned)
             self.reward += float(self.coins_reward_value) * (cur_coins - last_coins)
             # if cur_coins < last_coins: likely wrapped (got extra life), ignore
