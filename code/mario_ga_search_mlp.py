@@ -108,7 +108,7 @@ def update_sigma_stagnation(
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
             rewards[i] = -float('inf')  # exclude reinitialized from next tournament
-        current_sigma = sigma_max  # boost to max sigma on stagnation restart
+        current_sigma = sigma  # reset to initial sigma on stagnation restart
         stagnation_count = 0
         print(f"\nStagnation Restart")
         print(f"\nReinitialized {n_reinit} individuals")
