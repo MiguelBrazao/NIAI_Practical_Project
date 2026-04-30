@@ -76,7 +76,7 @@ def init_worker(agent_class):
 
     worker_agent = agent_class()
     if worker_task is None:
-        worker_task = TASK_TO_SOLVE(visualization=True, port=port, init_mario_mode=0)
+        worker_task = TASK_TO_SOLVE(visualization=VISUALIZE, port=port, init_mario_mode=0)
 
 
 def evaluate_individual(ind_info):
@@ -108,7 +108,7 @@ def evaluate(agent_class, ind_info):
     if worker_agent is None:
         worker_agent = agent_class()
     if worker_task is None:
-        worker_task = TASK_TO_SOLVE(visualization=True, port=port_list[0])
+        worker_task = TASK_TO_SOLVE(visualization=VISUALIZE, port=port_list[0])
     return evaluate_individual(ind_info)
 
 
