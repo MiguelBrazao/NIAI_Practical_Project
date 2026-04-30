@@ -37,8 +37,8 @@ def make_evolution_plot(best, mean, title, save=False):
     
 
 # Tournament parent selection
-def tournament(population, population_size, tournament_k, rewards, replace=False):
-    idx = np.random.choice(population_size, tournament_k, replace=replace)
+def tournament(population, population_size, tournament_k_ratio, rewards, replace=False):
+    idx = np.random.choice(population_size, int(population_size * tournament_k_ratio), replace=replace)
     return deepcopy(population[idx[np.argmax(rewards[idx])]])
 
 
@@ -52,27 +52,26 @@ def save_best_agent(params, reward):
     print(f"\nSaved new best agent with reward {reward:.3f}")
 
 
-def debug_evaluate_population(rewards):
-    # DIAGNOSTICS
-    top5 = np.argsort(rewards)[::-1][:5]
-    print("\nMin = {:.3f}".format(rewards.min()))
-    print("Max = {:.3f}".format(rewards.max()))
+def debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio):
+    top_size = max(1, int(population_size * tournament_k_ratio))
+    top = np.argsort(rewards)[::-1][:top_size]
+    print("\nMax = {:.3f}".format(rewards.max()))
+    print("Min = {:.3f}".format(rewards.min()))
     print("Mean = {:.3f}".format(rewards.mean()))
     print("Std = {:.3f}".format(rewards.std()))
-    print("Top 5:", top5)
-    print("Top 5 rewards:")
-    print("1: ", rewards[top5[0]])
-    print("2: ", rewards[top5[1]])
-    print("3: ", rewards[top5[2]])
-    print("4: ", rewards[top5[3]])
-    print("5: ", rewards[top5[4]])
+    print(f"Top {len(top)}:", top)
+    print(f"Top {min(5, len(top))} rewards:")
+    for i in range(min(5, len(top))):
+        print(f"{i+1}: ", rewards[top[i]])
+    print(f"Elite Count: {max(1, int(elite_ratio * population_size))}")
 
 
 def update_sigma_stagnation(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
         sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
-        stagnation_ratio, generations):
+        stagnation_ratio, generations, population_restart_ratio
+    ):
     """
     Updates sigma and stagnation state after each generation.
 
@@ -97,7 +96,7 @@ def update_sigma_stagnation(
 
     # Stagnation restart
     if stagnation_count >= stagnation_limit:
-        n_reinit = population_size // 3
+        n_reinit = int(population_size * population_restart_ratio)
         worst_idx = np.argsort(rewards)[:n_reinit]
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
@@ -116,67 +115,36 @@ def update_sigma_stagnation(
 
 
 def genetic_algorithm(
-                    population_size=60, generations=300, tournament_k=3, 
-                    crossover_rate=0.9, sigma=0.25, mutation_rate=0.4, 
-                    elite_count=2, crossover_mask_prob=0.5,
-                    stagnation_ratio=0.1, sigma_decay=0.99, sigma_min=0.15):
+        generations=300, population_size=60, tournament_k_ratio=0.07, elite_ratio=.05, 
+        crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.75, 
+        sigma=0.25, sigma_decay=0.5, sigma_min=0.1,
+        stagnation_ratio=0.05, population_restart_ratio=0.5
+    ):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
     
     Parameters:
-    - Population_size: the number of candidate solutions (MLP parameter vectors) in each generation.
-    - Generations: how many iterations of the evolutionary process to run.
-    - Tournament_k: the number of individuals in each tournament.
-    - Crossover_rate: the probability of performing crossover.
-    - Sigma: the mutation strength.
-    - Mutation_rate: the probability of mutating each parameter.
-    - Elite_count: how many top individuals to carry over unchanged.
-    - Crossover_mask_prob: the per-gene probability of taking a gene from parent1 during crossover.
-    - Stagnation_ratio: fraction of total generations without improvement before reinitializing bottom half of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; clamped to at least 1).
-    - Sigma_decay: multiplicative decay applied to sigma each generation (e.g. 0.95 → halves in ~14 gens).
-    - Sigma_min: floor for sigma decay so mutation never fully stops.
-
+    - generations:              how many iterations of the evolutionary process to run.
+    - population_size:          the number of candidate solutions (MLP parameter vectors) in each generation.
+    - tournament_k_ratio:       the fraction of the population to include in each tournament.
+    - elite_ratio:              the fraction of top individuals to carry over unchanged.
+    - crossover_rate:           the probability of performing crossover.
+    - crossover_mask_prob:      the per-gene probability of taking a gene from parent1 during crossover.
+    - mutation_rate:            the probability of mutating each parameter.
+    - sigma:                    the mutation strength.
+    - sigma_decay:              multiplicative decay applied to sigma each generation (e.g. 0.95 → halves in ~14 gens).
+    - sigma_min:                floor for sigma decay so mutation never fully stops.
+    - stagnation_ratio:         fraction of total generations without improvement before reinitializing bottom 
+                                half of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; 
+                                clamped to at least 1).
+    - population_restart_ratio: fraction of population to reinitialize upon stagnation 
+                                (e.g. 0.5 → reinit bottom half).
+                        
     Evolves MLP weights using a Genetic Algorithm with:
         - Tournament selection (parent selection)
         - Uniform crossover
         - Gaussian mutation
         - Elitism (survivor selection)
-
-    Hyperparameter examples:
-        - Quick debug (fast, single-process, low cost):
-            genetic_algorithm(
-                            population_size=20, generations=10, tournament_k=2,
-                            crossover_rate=0.8, sigma=0.1, mutation_rate=0.2,
-                            elite_count=1, crossover_mask_prob=0.5,
-                            stagnation_ratio=0.5, sigma_decay=0.9, sigma_min=0.05)
-
-        - Regular debug (fast, single-process, more stable):
-            genetic_algorithm(
-                            population_size=40, generations=100, tournament_k=3, 
-                            crossover_rate=0.8, sigma=0.1, mutation_rate=0.2, 
-                            elite_count=4, crossover_mask_prob=0.5,
-                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
-
-        - Baseline (reasonable tradeoff):
-            genetic_algorithm(
-                            population_size=80, generations=100, tournament_k=3,
-                            crossover_rate=0.8, sigma=0.25, mutation_rate=0.3,
-                            elite_count=2, crossover_mask_prob=0.5,
-                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
-
-        - Thorough (more compute, slower convergence but better search):
-            genetic_algorithm(
-                            population_size=200, generations=300, tournament_k=4,
-                            crossover_rate=0.9, sigma=0.15, mutation_rate=0.2,
-                            elite_count=4, crossover_mask_prob=0.6,
-                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
-
-    Extra notes:
-        - For debugging use processes=1 in evaluation.py and small population/generations;
-        - Use sigma ∈ [0.1,0.3] for stable searches; higher = noisy exploration;
-        - mutation_rate ~0.2–0.4; tournament_k controls selection pressure (higher → stronger pressure);
-        - Keep elite_count small (1–5);
-        - Fix random seed for repeatability.
     """
     agent_class = MLPAgent  # keep class for evaluate_population (used by workers)
 
@@ -186,17 +154,18 @@ def genetic_algorithm(
     print(f"\n---------------------------------------------")
     print(f"\n{task_label} GA Search with MLP Agent")
     print(f"\n---------------------------------------------\n")
-    print(f"Population Size: {population_size}")
     print(f"Generations: {generations}")
-    print(f"Tournament Top K: {tournament_k}")
+    print(f"Population Size: {population_size}")
+    print(f"Tournament Top K Ratio: {tournament_k_ratio}")
+    print(f"Elite Ratio: {elite_ratio}")
     print(f"Crossover Rate: {crossover_rate}")
-    print(f"Sigma: {sigma}")
-    print(f"Mutation Rate: {mutation_rate}")
-    print(f"Elite Count: {elite_count}")
     print(f"Crossover Mask Prob: {crossover_mask_prob}")
-    print(f"Stagnation Ratio: {stagnation_ratio}")
+    print(f"Mutation Rate: {mutation_rate}")
+    print(f"Sigma: {sigma}")
     print(f"Sigma Decay: {sigma_decay}")
     print(f"Sigma Min: {sigma_min}")
+    print(f"Stagnation Ratio: {stagnation_ratio}")
+    print(f"Population Restart Ratio: {population_restart_ratio}")
     print(f"\n---------------------------------------------")
     print(f"\nStagnation Limit is {stagnation_limit} generations")
     print(f"\n---------------------------------------------")
@@ -209,7 +178,7 @@ def genetic_algorithm(
     best_params = deepcopy(population[np.argmax(rewards)]) # Keep track of the best parameters found so far
     best_reward = rewards.max() # Keep track of the best reward found so far
     
-    debug_evaluate_population(rewards) # Print diagnostics about the rewards distribution in the initial population
+    debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio) # Print diagnostics about the rewards distribution in the initial population
     save_best_agent(best_params, best_reward) # Save the best agent from the initial population
     new_best_found = True # Flag to track if a new best agent was found in the current generation (used for saving)
     best_rewards = [best_reward] # Track the best reward of each generation for plotting
@@ -223,7 +192,7 @@ def genetic_algorithm(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
         sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
-        stagnation_ratio, generations
+        stagnation_ratio, generations, population_restart_ratio
     )
     new_best_found = False
     
@@ -233,6 +202,7 @@ def genetic_algorithm(
         print(f"\nGeneration {generation}/{generations}")
 
         # Select elites from current population (based on current rewards)
+        elite_count = max(1, int(elite_ratio * population_size))
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         elites = [deepcopy(population[i]) for i in elite_idx]
         best_candidate = deepcopy(population[elite_idx[0]])
@@ -242,8 +212,8 @@ def genetic_algorithm(
         new_population = []
         while len(new_population) < population_size:
             # Tournament selection
-            parent1 = tournament(population, population_size, tournament_k, rewards)
-            parent2 = tournament(population, population_size, tournament_k, rewards)
+            parent1 = tournament(population, population_size, tournament_k_ratio, rewards)
+            parent2 = tournament(population, population_size, tournament_k_ratio, rewards)
 
             # Uniform Crossover
             if np.random.rand() < crossover_rate:
@@ -267,7 +237,7 @@ def genetic_algorithm(
         # Advance to new population and evaluate it
         population = new_population
         rewards = evaluate_population(agent_class, population)
-        debug_evaluate_population(rewards) # Print diagnostics about the rewards distribution in the new population
+        debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio) # Print diagnostics about the rewards distribution in the new population
 
         # Track global best: check both the old elite (carried forward) and the new population's best
         new_pop_best_idx = np.argmax(rewards)
@@ -295,7 +265,7 @@ def genetic_algorithm(
             new_best_found, current_sigma, stagnation_count,
             population, rewards, num_params,
             sigma, sigma_decay, sigma_min, stagnation_limit, population_size,
-            stagnation_ratio, generations
+            stagnation_ratio, generations, population_restart_ratio
         )
         new_best_found = False
 

@@ -1,79 +1,85 @@
 class Rewards:
     def __init__(
-                self, 
-
-                forward_reward_value=1.0,                       # base reward for moving forward — primary objective, must dominate per-step signals
-
-                jump_reward_value=1.0,                          # reward for jumping when beneficial — clearing terrain is harder than walking, worth more than one forward step
-
-                coins_reward_value=1.0,                         # small reward for collecting coins (encourages exploration and coin collection)
-
-                power_ups_reward_value=1.0,                     # reward for collecting power-ups (e.g., mushrooms, fire flowers)
-                power_ups_penalty_value=2.0,                    # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
-
-                kills_reward_value=1.0,                   # reward for defeating enemies (encourages combat and threat elimination)
-                kills_threshold=48.0,                     # distance threshold in world pixels to consider an enemy kill valid (prevents false positives from enemies walking off screen)
-
-                death_penalty_value=100.0,                      # penalty for dying (can be tuned to balance with other rewards)                
-                ):
-        
-        # Reward parameters (can be tuned for different behaviors)
+        self, 
+        forward_reward_value=1.0,           # base reward for moving forward — primary objective, must dominate per-step signals
+        jump_reward_value=1.0,              # reward for jumping when beneficial — clearing terrain is harder than walking, worth more than one forward step
+        coins_reward_value=1.0,             # small reward for collecting coins (encourages exploration and coin collection)
+        power_ups_reward_value=1.0,         # reward for collecting power-ups (e.g., mushrooms, fire flowers)
+        power_ups_penalty_value=2.0,        # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
+        kills_reward_value=1.0,             # reward for defeating enemies (encourages combat and threat elimination)
+        kills_threshold=48.0,               # distance threshold in world pixels to consider an enemy kill valid (prevents false positives from enemies walking off screen)
+        death_penalty_value=100.0,          # penalty for dying (can be tuned to balance with other rewards)                
+    ):
         self.forward_reward_value = forward_reward_value
-
         self.jump_reward_value = jump_reward_value
-
         self.coins_reward_value = coins_reward_value
-
         self.power_ups_reward_value = power_ups_reward_value
         self.power_ups_penalty_value = power_ups_penalty_value
-
         self.kills_reward_value = kills_reward_value
         self.kills_threshold = kills_threshold
-
         self.death_penalty_value = death_penalty_value
 
-        # Tracking variables for reward computation
         self.last_sense = None              # to store the last observation for reward comparison (e.g., to compute movement, coin collection, enemy kills)
         self.vars_current_obs = None        # to store the current observation variables for easy access (e.g., position, coins, enemies) and to avoid repeated unpacking during reward calculations
         self.vars_last_obs = None           # to store the last observation variables for comparison with current observation in reward calculations (e.g., to compute movement, coin collection, enemy kills)
         self.reward = 0.0                   # to store the computed reward for the current step, which can be accessed by the task's get_sensors method to return as part of the fitness packet
         self.check_distance = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
-        self.finish_line_reached = False    # to track if the finish line bonus has been awarded to prevent multiple bonuses
-        self.check_death = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
+        self.check_death = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)      
 
 
     def reset(self):
-        self.last_sense = None              
-        self.vars_current_obs = None
-        self.vars_last_obs = None
-        self.reward = 0.0
-        self.finish_line_reached = False
+        """
+        Resets the internal state of the reward system. This method is called at the beginning of each episode
+        to ensure that reward calculations start fresh and are not influenced by the previous episode's state.
+        """
+        self.last_sense = None
 
 
     def perform_action(self, action):
-        self.last_action = action 
+        """
+        Gets called every time the agent performs an action. 
+        We can use this to track the last action taken by the agent, 
+        which can be useful for computing rewards that depend on the 
+        agent's behavior (e.g., rewarding jumps when they lead to 
+        progress or penalizing actions that lead to negative 
+        outcomes). By storing the last action, we can also 
+        analyze action patterns and their impact on the 
+        reward signal.
+        """
+        self.last_action = action
 
 
     def get_sensors(self):
         """
+        This method runs every step and is responsible for returning the current observation of the game state as a dictionary. 
+        We override it to compute rewards based on the current and last observations, as well as the last action taken by the agent. 
+        This allows us to implement a rich reward system that can encourage complex behaviors by providing feedback on progress, 
+        interactions with enemies, coin collection, power-up usage, and more. By computing the reward in get_sensors, we ensure 
+        that it is included in the fitness packet returned to the evolutionary algorithm for proper fitness evaluation.
+
         Override to apply final-episode rewards using the fitness packet (status).
-        This allows to reward reaching the finish line and penalize dying in a way that is properly reflected in the fitness evaluation, since the episode ends immediately after these events and we won't have another step to apply those rewards/penalties.
+        This allows to reward reaching the finish line and penalize dying in a way that is properly reflected in the 
+        fitness evaluation, since the episode ends immediately after these events and we won't have another step 
+        to apply those rewards/penalties.
 
         We avoid touching marioai/ and instead inspect the raw Observation from the
         environment here. For fitness packets (level_scene is None) we penalize
         non-win statuses and return the Observation as usual.
         """
         sense = self.env.get_sensors()
+        self.reward = 0.0
 
         # Fitness packet (no level scene)
         if sense.level_scene is None:
             self.status = sense.status
             
-            # Terminal reward/penalty for reaching the finish line or dying.
-            # Applied only once when the status changes to finished (1) or dead (0).
-            # And we have a valid distance measurement for the finish line bonus. 
-            # This ensures that we properly reward reaching the finish line.
-            # Or penalize dying in the fitness evaluation.
+            """
+            Terminal reward/penalty for reaching the finish line or dying.
+            Applied only once when the status changes to finished (1) or dead (0).
+            And we have a valid distance measurement for the finish line bonus. 
+            This ensures that we properly reward reaching the finish line.
+            Or penalize dying in the fitness evaluation.
+            """
             terminal_reward = 0.0
             if self.check_distance:
                 terminal_reward = sense.distance
@@ -91,34 +97,38 @@ class Rewards:
         return sense
         
     
-    def step(self, current_obs=None, last_obs=None):
+    def observations(self, current_obs, last_obs):
         """
-        Extracts relevant information from the current observation and computes:
-        - categorized cells in front/behind (same as before)
-        - nearest cell per category in front
-        - nearest overall object in front
-        - booleans: should_jump, should_run_shoot, should_duck (using separate thresholds)
+        Extracts relevant information from the current observation. Necessary for most methods to compute 
+        rewards based on changes in the game state (e.g., movement, coin collection, enemy interactions). 
+        By storing the current and last observations in a structured way, we can easily compare them to 
+        compute various reward components.
 
         Parameters:
-        - current_obs: current observation of the game state: dict_keys(['may_jump', 'on_ground', 'mario_pos', 'enemies', 'level_scene', 'status', 'distance', 'time_left', 'mario_mode', 'coins'])
+        - current_obs: current observation of the game state: 
+        dict_keys(['may_jump', 'on_ground', 'mario_pos', 'enemies', 'level_scene', 
+        'status', 'distance', 'time_left', 'mario_mode', 'coins'])
         - last_obs: previous observation (can be None for the first step)
         """
-        # self.last_environment_info = self.environment_info  # save before overwriting: aligns with last_action (chosen based on the previous obs)
         self.vars_current_obs = vars(current_obs) if current_obs is not None else None
         self.vars_last_obs = vars(last_obs) if last_obs is not None else None
-        self.reward = 0.0
 
 
     def distance(self):
         """
-        Computes a reward based on the distance to the finish line, which encourages the agent to make progress towards completing the level. This can be used as a terminal reward when the episode ends (e.g., when Mario reaches the finish line or dies) to reflect how close the agent was to finishing the level.
+        Computes a reward based on the distance to the finish line, which encourages the agent to
+          make progress towards completing the level. This can be used as a terminal reward when 
+          the episode ends (e.g., when Mario reaches the finish line or dies) to reflect how 
+          close the agent was to finishing the level.
         """
         self.check_distance = True  # set flag to check distance in get_sensors, where we have access to the status and can apply the reward properly as a terminal reward
 
     
     def forward(self):
         """
-        Computes a reward for forward movement, which encourages the agent to make progress through the level.
+        Computes a reward for forward movement, which 
+        encourages the agent to make progress through 
+        the level.
         """
         # If we don't have a previous observation or mario position info, do nothing
         if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
@@ -134,13 +144,14 @@ class Rewards:
 
     def jump(self):
         """
-        Computes a reward for upward movement (jumping) as a positive signal when Mario should jump.
+        Computes a reward for upward movement (jumping) 
+        as a positive signal when Mario should jump.
         """
         if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
             return
 
-        cur_x, cur_y = self.vars_current_obs['mario_pos']
-        last_x, last_y = self.vars_last_obs['mario_pos']
+        _, cur_y = self.vars_current_obs['mario_pos']
+        _, last_y = self.vars_last_obs['mario_pos']
 
         on_ground = self.vars_current_obs.get('on_ground', True)
 
@@ -151,9 +162,11 @@ class Rewards:
 
     def coins(self):
         """
-        Computes a reward for collecting coins, which encourages the agent to explore and gather resources in the level.
+        Computes a reward for collecting coins, which 
+        encourages the agent to explore and gather 
+        resources in the level.
         """
-        if self.vars_last_obs is None or self.vars_current_obs.get('coins') is None or self.vars_last_obs.get('coins') is None:
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('coins') is None or self.vars_last_obs.get('coins') is None:
             return
         
         cur_coins = self.vars_current_obs['coins']
@@ -167,9 +180,11 @@ class Rewards:
 
     def power_ups(self):
         """
-        Computes a reward for collecting power-ups (e.g., mushrooms, fire flowers), which encourages the agent to seek out and utilize power-ups for enhanced abilities.
+        Computes a reward for collecting power-ups (e.g., mushrooms, 
+        fire flowers), which encourages the agent to seek out and 
+        utilize power-ups for enhanced abilities.
         """
-        if self.vars_last_obs is None or self.vars_current_obs.get('mario_mode') is None or self.vars_last_obs.get('mario_mode') is None:
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_mode') is None or self.vars_last_obs.get('mario_mode') is None:
             return
         
         cur_mode = self.vars_current_obs['mario_mode']
@@ -214,6 +229,7 @@ class Rewards:
     
     def death(self):
         """
-        Penalizes Mario for dying, which encourages the agent to avoid dangerous situations and learn survival strategies.
+        Penalizes Mario for dying, which encourages the agent to 
+        avoid dangerous situations and learn survival strategies.
         """
         self.check_death = True  # set flag to check for death in get_sensors, where we have access to the status and can apply the penalty properly as a terminal reward
