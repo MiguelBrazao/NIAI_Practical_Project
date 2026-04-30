@@ -46,17 +46,17 @@ class MLPAgent(marioai.Agent):
 
         # self.input_dim = 488
         
-        # Mario only needs to look ahead and around him, not the entire level. 
-        # Let's optimize input space. Reduced input space:
+        # Optimized input space:
         # 7x7 window ahead/below Mario (rows 9-15, cols 11-17) = 49
         # marioFloats (x, y) = 2
         # flags (isMarioOnGround, mayMarioJump) = 2
         # 3 closest enemies as relative (dx, dy) = 6
-        # 6 closest bricks as relative (dx, dy) = 12
-        # 2 closest items as relative (dx, dy) = 4
-        # Total = 49 + 2 + 2 + 6 + 12 + 4 = 75
+        # Bricks and items are NOT added separately: the 7x7 window already encodes
+        # them within the jump_threshold range, so adding them again would only
+        # increase the GA search space (~500 extra weights) for zero information gain.
+        # Total = 49 + 2 + 2 + 6 = 59
         
-        self.input_dim = 75 # 49 (window) + 2 (mario pos) + 2 (flags) + 6 (enemies) + 12 (bricks) + 4 (items)
+        self.input_dim = 59 # 49 (window) + 2 (mario pos) + 2 (flags) + 6 (enemies)
         self.output_dim = 5 # [backward, forward, crouch, jump, speed/bombs]
         
         self.mlp = MLP(self.input_dim, self.output_dim)
@@ -126,27 +126,8 @@ class MLPAgent(marioai.Agent):
                 enemy_features[i * 2 + 1] = ey - mario_pos[1]
 
         # Extract coins and power-ups as additional features if needed (not implemented here, but could be added similarly to enemies)
-        N_BRICKS = 6
-        N_ITEMS = 2
-        bricks_features = np.zeros(N_BRICKS * 2) # Placeholder for brick relative positions (12 values for 6 bricks)     
-        item_features = np.zeros(N_ITEMS * 2) # Placeholder for item relative positions (4 values for 2 items)
-        # Cycle through full_window to get positions for each type
-        for y in range(full_window.shape[0]):
-            for x in range(full_window.shape[1]):
-                cell_value = full_window[y, x]
-                if cell_value == 16 | cell_value == 21: # Brick (simple/coin/mushroom/flower) or Question-brick (with coin or power-up)
-                    idx = np.where(bricks_features == 0)[0]
-                    if len(idx) >= 2:
-                        bricks_features[idx[0]] = x - mario_pos[0]
-                        bricks_features[idx[0] + 1] = y - mario_pos[1]
-                elif cell_value == 14 | cell_value == 15: # Item power-up (mushroom or flower)
-                    idx = np.where(item_features == 0)[0]
-                    if len(idx) >= 2:
-                        item_features[idx[0]] = x - mario_pos[0]
-                        item_features[idx[0] + 1] = y - mario_pos[1]
-
-        # Concatenate inputs
-        inputs = np.concatenate((scene_flat, mario_pos, flags, enemy_features, bricks_features, item_features))
+        # Concatenate inputs (no brick/item features — redundant with scene_flat)
+        inputs = np.concatenate((scene_flat, mario_pos, flags, enemy_features))
         
         # Convert to tensor
         input_tensor = torch.tensor(inputs, dtype=torch.float32)

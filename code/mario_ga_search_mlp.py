@@ -147,25 +147,29 @@ def genetic_algorithm(
             genetic_algorithm(
                             population_size=20, generations=10, tournament_k=2,
                             crossover_rate=0.8, sigma=0.1, mutation_rate=0.2,
-                            elite_count=1, crossover_mask_prob=0.5)
+                            elite_count=1, crossover_mask_prob=0.5,
+                            stagnation_ratio=0.5, sigma_decay=0.9, sigma_min=0.05)
 
         - Regular debug (fast, single-process, more stable):
             genetic_algorithm(
                             population_size=40, generations=100, tournament_k=3, 
                             crossover_rate=0.8, sigma=0.1, mutation_rate=0.2, 
-                            elite_count=4, crossover_mask_prob=0.5)
+                            elite_count=4, crossover_mask_prob=0.5,
+                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
 
         - Baseline (reasonable tradeoff):
             genetic_algorithm(
                             population_size=80, generations=100, tournament_k=3,
                             crossover_rate=0.8, sigma=0.25, mutation_rate=0.3,
-                            elite_count=2, crossover_mask_prob=0.5)
+                            elite_count=2, crossover_mask_prob=0.5,
+                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
 
         - Thorough (more compute, slower convergence but better search):
             genetic_algorithm(
                             population_size=200, generations=300, tournament_k=4,
                             crossover_rate=0.9, sigma=0.15, mutation_rate=0.2,
-                            elite_count=4, crossover_mask_prob=0.6)
+                            elite_count=4, crossover_mask_prob=0.6,
+                            stagnation_ratio=0.1, sigma_decay=0.95, sigma_min=0.05)
 
     Extra notes:
         - For debugging use processes=1 in evaluation.py and small population/generations;
