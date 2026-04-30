@@ -82,7 +82,7 @@ class Rewards:
             """
             terminal_reward = 0.0
             if self.check_distance:
-                terminal_reward = sense.distance
+                terminal_reward = sense.distance * (1 + self.level_difficulty)  # scale distance reward by level difficulty to encourage progress more in harder levels
             if self.check_death and self.status != 1:
                 terminal_reward -= float(self.death_penalty_value)
 
