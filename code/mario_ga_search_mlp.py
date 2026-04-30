@@ -102,7 +102,7 @@ def update_sigma_stagnation(
         for i in worst_idx:
             population[i] = np.random.randn(num_params)
             rewards[i] = -float('inf')  # exclude reinitialized from next tournament
-        current_sigma = min(sigma, current_sigma * 2.0)  # boost sigma to re-explore
+        current_sigma = sigma  # reset to initial sigma on stagnation restart
         stagnation_count = 0
         print(f"\nStagnation Restart")
         print(f"\nReinitialized {n_reinit} individuals")
@@ -117,7 +117,7 @@ def update_sigma_stagnation(
 
 def genetic_algorithm(
         generations=300, population_size=60, tournament_k_ratio=0.07, elite_ratio=.05, 
-        crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.75, 
+        crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
         sigma=0.25, sigma_decay=0.99, sigma_min=0.1,
         stagnation_ratio=0.05, population_restart_ratio=0.5
     ):
@@ -206,6 +206,7 @@ def genetic_algorithm(
         elite_count = max(1, int(elite_ratio * population_size))
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         elites = [deepcopy(population[i]) for i in elite_idx]
+        elite_rewards_carried = rewards[elite_idx].copy()  # carry forward without re-evaluation
         best_candidate = deepcopy(population[elite_idx[0]])
         best_candidate_reward = rewards[elite_idx[0]]
 
@@ -235,10 +236,11 @@ def genetic_algorithm(
         for i, e in enumerate(elites):
             new_population[i] = deepcopy(e)
 
-        # Advance to new population and evaluate it
+        # Advance to new population; evaluate only offspring, carry elite rewards forward
         population = new_population
-        rewards = evaluate_population(agent_class, population)
-        debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio) # Print diagnostics about the rewards distribution in the new population
+        offspring_rewards = evaluate_population(agent_class, population[elite_count:])
+        rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
+        debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio)
 
         # Track global best: check both the old elite (carried forward) and the new population's best
         new_pop_best_idx = np.argmax(rewards)
