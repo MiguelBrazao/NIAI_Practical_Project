@@ -10,7 +10,6 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
-        #self.distance_reward_ratio = 0.5 # Reduce emphasis on distance to encourage more aggressive enemy engagement
 
     def compute_reward(self, current_obs, last_obs):
         """

@@ -8,8 +8,8 @@ class Rewards:
         power_ups_penalty_value=2.0,        # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
         kills_reward_value=1.0,             # reward for defeating enemies (encourages combat and threat elimination)
         kills_threshold=48.0,               # distance threshold in world pixels to consider an enemy kill valid (prevents false positives from enemies walking off screen)
-        progression_reward_ratio=1.0,          # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
-        deaths_penalty_value=100.0,          # penalty for dying (can be tuned to balance with other rewards)                
+        progression_reward_ratio=1.0,       # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
+        deaths_penalty_value=100.0,         # penalty for dying (can be tuned to balance with other rewards)                
     ):
         self.forward_reward_value = forward_reward_value
         self.jump_reward_value = jump_reward_value
