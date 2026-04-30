@@ -83,8 +83,11 @@ def update_sigma_stagnation(
     Returns:
         current_sigma (float), stagnation_count (int), population (list), rewards (np.ndarray)
     """
-    # Sigma decay
-    current_sigma = max(current_sigma * sigma_decay, sigma_min)
+    # Decay sigma when improving, grow it back when stagnating
+    if new_best_found:
+        current_sigma = max(current_sigma * sigma_decay, sigma_min)
+    else:
+        current_sigma = min(current_sigma / sigma_decay, sigma)
 
     # Stagnation counter
     if new_best_found:
