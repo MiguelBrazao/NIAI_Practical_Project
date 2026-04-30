@@ -136,7 +136,7 @@ def genetic_algorithm(
     - sigma_decay:              multiplicative decay applied to sigma each generation (e.g. 0.95 → halves in ~14 gens).
     - sigma_min:                floor for sigma decay so mutation never fully stops.
     - stagnation_ratio:         fraction of total generations without improvement before reinitializing bottom 
-                                half of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; 
+                                part of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; 
                                 clamped to at least 1).
     - population_restart_ratio: fraction of population to reinitialize upon stagnation 
                                 (e.g. 0.5 → reinit bottom half).
