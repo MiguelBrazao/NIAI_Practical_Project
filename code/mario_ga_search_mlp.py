@@ -38,7 +38,9 @@ def make_evolution_plot(best, mean, title, save=False):
 
 # Tournament parent selection
 def tournament(population, population_size, tournament_k_ratio, rewards, replace=False):
-    idx = np.random.choice(population_size, int(population_size * tournament_k_ratio), replace=replace)
+    eligible = np.where(np.isfinite(rewards))[0]
+    pool = eligible if len(eligible) >= 2 else np.arange(population_size)
+    idx = np.random.choice(pool, min(int(population_size * tournament_k_ratio), len(pool)), replace=replace)
     return deepcopy(population[idx[np.argmax(rewards[idx])]])
 
 

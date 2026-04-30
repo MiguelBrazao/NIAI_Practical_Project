@@ -43,9 +43,11 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.reset(self)
         rewards.Rewards.reset(self)
         
+
     def perform_action(self, action):
         marioai.Task.perform_action(self, action)
         rewards.Rewards.perform_action(self, action)
+        
         
     def get_sensors(self):
         return rewards.Rewards.get_sensors(self)
