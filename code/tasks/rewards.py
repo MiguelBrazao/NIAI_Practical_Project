@@ -558,7 +558,13 @@ class Rewards:
         elif cur_movement < 0:
             self.reward -= self.backward_penalty_value
         else:
-            self.reward -= self.still_penalty_value
+            # Skip the still penalty when Mario is airborne: during a jump arc
+            # x-velocity can briefly stall (especially against a wall), which would
+            # otherwise produce a net -1.0 signal (still=-2, jump=+1) that directly
+            # fights the jump reward and teaches the GA that jumping is bad.
+            on_ground = self.vars_current_obs.get('on_ground', True)
+            if on_ground:
+                self.reward -= self.still_penalty_value
 
 
     def jump(self, to_collect=False):
