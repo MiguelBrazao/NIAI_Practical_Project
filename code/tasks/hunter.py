@@ -32,12 +32,13 @@ class HunterTask(marioai.Task, rewards.Rewards):
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
 
-        self.observations(current_obs, last_obs)    # Update internal state based on current and last observations (e.g. track enemy counts for kill rewards)
-        #self.progression()                        # Compute final raw reward based on distance traveled forward (primary objective)
-        self.kills()                                # Reward for defeating enemies (secondary: encourages combat and threat elimination)    
-        return self.reward                          # Return the computed reward and reset internal state for next step    
-        #self.coins()                                # Reward for collecting coins (primary objective)
-        #self.power_ups()                            # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
+        self.progression_reward_ratio = 1/1200      # test between 2400 and 600 -- accumulates after episode of steps
+        self.kills_reward_value = 5.0               # test between 1.0 and 10.0 -- accumulates per step
+
+        self.observations(current_obs, last_obs)    # Update internal state with current and last observations for reward calculations and get_sensors access
+        self.progression()                          # Compute reward based on level progression (distance traveled forward) -- primary objective to encourage forward movement and level completion
+        self.kills()                                # Reward for collecting power-ups (secondary: encourages exploration to find enemies)
+
 
     def reset(self):
         marioai.Task.reset(self)
