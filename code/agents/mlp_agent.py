@@ -8,12 +8,12 @@ class MLP(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 32),
+            nn.Linear(input_dim, 16),
             nn.ReLU(),
-            nn.Linear(32, 16),
+            nn.Linear(16, 8),
             nn.ReLU(),
-            nn.Linear(16, output_dim),
-            nn.Sigmoid() # Sigmoid for multi-binary output (or should it be separate?)
+            nn.Linear(8, output_dim)
+            # No Sigmoid: threshold raw logits at 0.0 for crisper binary decisions
         )
 
 
@@ -21,102 +21,66 @@ class MLP(nn.Module):
         return self.model(x)
 
 
-# Optimized MLPAgent with reduced input space and fixed enemy representation.
+# MLPAgent with compact input space and small network for efficient GA search.
 class MLPAgent(marioai.Agent):
-    # Optimized input space: 7x7 window (49) + mario pos (2) + flags (2) + fixed enemy representation (6) = 59
+    # Input space: 7x7 forward window (49) + mario pos (2) + flags (2) + 3 closest enemies (dx,dy) (6) = 59
+    # Network: 59 → 16 → 8 → 5 = 1085 parameters
     def __init__(self):
         super(MLPAgent, self).__init__()
-        # Input dimension: 
-        # 22x22 grid = 484
-        # + 2 (mario pos) + 2 (can_jump, on_ground) + ?
-        # Let's verify input size.
-        # sense() gets: (mayMarioJump, isMarioOnGround, marioFloats, enemiesFloats, levelScene, dummy)
-        # Flattened levelScene: 484
-        # Mario floats: 2 (usually normalized or relative?)
-        # Enemies floats: variable length... tricky for MLP.
-        # For simplicity, let's stick to a fixed size input.
-        # Reference `extractObservation` in utils.py tells us what we get.
+        # Input space (all normalized to [-1, 1]):
+        # 7x7 window: Mario at leftmost col, 6 cols ahead, 3 rows above/below (rows 8:15, cols 11:18) = 49
+        # mario_pos: world (x, y) normalized by level dimensions = 2
+        # flags: can_jump, on_ground mapped to {-1, 1} = 2
+        # 3 closest enemies as relative (dx, dy) offsets, normalized by max range = 6
+        # Total = 59
 
-        # Let's simplify inputs for the first version:
-        # Flattened levelScene (22x22) = 484
-        # marioFloats (x, y) = 2
-        # isMarioOnGround = 1
-        # mayMarioJump = 1
-        # Total = 488
+        self.input_dim = 59
+        self.output_dim = 5  # [backward, forward, crouch, jump, speed/fire]
 
-        # self.input_dim = 488
-        
-        # Optimized input space:
-        # 7x7 window ahead/below Mario (rows 9-15, cols 11-17) = 49
-        # marioFloats (x, y) = 2
-        # flags (isMarioOnGround, mayMarioJump) = 2
-        # 3 closest enemies as relative (dx, dy) = 6
-        # Bricks and items are NOT added separately: the 7x7 window already encodes
-        # them within the jump_threshold range, so adding them again would only
-        # increase the GA search space (~500 extra weights) for zero information gain.
-        # Total = 49 + 2 + 2 + 6 = 59
-        
-        self.input_dim = 59 # 49 (window) + 2 (mario pos) + 2 (flags) + 6 (enemies)
-        self.output_dim = 5 # [backward, forward, crouch, jump, speed/bombs]
-        
         self.mlp = MLP(self.input_dim, self.output_dim)
-
-        # Action threshold
-        self.threshold = 0.5 # Threshold for converting MLP outputs to binary actions
 
 
     def sense(self, obs):
         super(MLPAgent, self).sense(obs)
-        # obs is (mayMarioJump, isMarioOnGround, marioFloats, enemiesFloats, levelScene, dummy)
-        # But wait, `Agent.sense` unpacks it.
-        # self.can_jump
-        # self.on_ground
-        # self.mario_floats
-        # self.enemies_floats
-        # self.level_scene (numpy array 22x22)
+        # Populates: self.can_jump, self.on_ground, self.mario_floats,
+        #            self.enemies_floats, self.level_scene
         pass
 
 
-    # Optimized window-based input processing and fixed enemy representation.
-    # Action post-processing to manage movement and jump behavior more effectively.
     def act(self):
         if self.level_scene is None:
             return [0, 0, 0, 0, 0] # No input yet, return no action
 
         full_window = self.level_scene # 22x22 grid
 
-        # Asymmetric 7x7 window: 1 col behind Mario, Mario's col, 5 cols ahead.
+        # Forward-only 7x7 window: Mario at leftmost column, 6 cols ahead.
         # Mario is fixed at (col=11, row=11) in the 22x22 grid, so all indices
         # are always in-bounds — no padding required.
-        #   cols: 10 (behind) … 16 (5 ahead)
+        #   cols: 11 (Mario) … 17 (6 ahead)
         #   rows:  8 (3 above) … 14 (3 below)
-        window = full_window[8:15, 10:17]   # shape (7, 7)
-        scene_flat = window.flatten()  # 49 values
+        window = full_window[8:15, 11:18]   # shape (7, 7)
+        scene_flat = (window.flatten() - 15.5) / 26.5  # center+scale tile values [-11,42] → [-1,1]
 
-        # Mario position (keep as feature inputs)
-        mario_pos = np.array(self.mario_floats)
+        # Mario position normalized to [-1, 1]
+        mario_pos = np.array([(self.mario_floats[0] - 1200.0) / 1200.0, (self.mario_floats[1] - 127.5) / 127.5])
 
-        # Boolean flags
-        flags = np.array([float(self.can_jump), float(self.on_ground)])
+        # Boolean flags mapped to {-1, 1}
+        flags = np.array([2.0 * float(self.can_jump) - 1.0, 2.0 * float(self.on_ground) - 1.0])
 
-        # Let's also include a fixed-size representation of the closest enemies. 
-        # We will take the 3 closest enemies and represent them as relative positions (dx, dy) to Mario. 
-        # If there are fewer than 3 enemies, we will pad with zeros.
-        # 3 closest enemies as relative (dx, dy) — fixed-size enemy representation
+        # 3 closest enemies as (dx, dy) relative to Mario, normalized to [-1, 1]
         N_ENEMIES = 3
-        enemy_features = np.zeros(N_ENEMIES * 2)
+        enemy_features = np.zeros(N_ENEMIES * 2)  # zero-padded if fewer than 3 enemies
         if self.enemies_floats:
             enemies = sorted(
                 self.enemies_floats,
-                key=lambda e: (e[0] - mario_pos[0]) ** 2 + (e[1] - mario_pos[1]) ** 2
+                key=lambda e: e[0]**2 + e[1]**2  # enemies are already (dx, dy) relative to Mario
             )[:N_ENEMIES]
             for i, enemy in enumerate(enemies):
-                ex, ey = enemy[0], enemy[1]  # 3-tuple (x, y, type)
-                enemy_features[i * 2]     = ex - mario_pos[0]
-                enemy_features[i * 2 + 1] = ey - mario_pos[1]
+                ex, ey = enemy[0], enemy[1]  # already (dx, dy) relative offsets from Mario
+                enemy_features[i * 2]     = ex / 256.0  # scale [-256,256] → [-1,1]
+                enemy_features[i * 2 + 1] = ey / 256.0  # scale [-256,256] → [-1,1]
 
-        # Extract coins and power-ups as additional features if needed (not implemented here, but could be added similarly to enemies)
-        # Concatenate inputs (no brick/item features — redundant with scene_flat)
+        # Concatenate all inputs into a single feature vector
         inputs = np.concatenate((scene_flat, mario_pos, flags, enemy_features))
         
         # Convert to tensor
@@ -126,9 +90,8 @@ class MLPAgent(marioai.Agent):
         with torch.no_grad():
             output_tensor = self.mlp(input_tensor)
 
-        # Convert to action list
-        action_probs = output_tensor.numpy() # Probabilities for each action
-        action = (action_probs > self.threshold).astype(int).tolist() # Convert to binary actions based on threshold
+        # Threshold raw logits at 0.0 for binary actions
+        action = (output_tensor.numpy() > 0.0).astype(int).tolist()
 
         return action
 
