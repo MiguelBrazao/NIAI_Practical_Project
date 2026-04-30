@@ -36,10 +36,10 @@ def make_evolution_plot(best, mean, title, save=False):
     plt.clf()
     
 
-def tournament(population, population_size, tournament_k_ratio, rewards, replace=False):
+def tournament(population, tournament_k, rewards, replace=False):
     eligible = np.where(np.isfinite(rewards))[0]
-    pool = eligible if len(eligible) >= 2 else np.arange(population_size)
-    idx = np.random.choice(pool, min(int(population_size * tournament_k_ratio), len(pool)), replace=replace)
+    pool = eligible if len(eligible) >= 2 else np.arange(len(population))
+    idx = np.random.choice(pool, min(tournament_k, len(pool)), replace=replace)
     return deepcopy(population[idx[np.argmax(rewards[idx])]])
 
 
@@ -53,9 +53,8 @@ def save_best_agent(params, reward):
     print(f"\nSaved new best agent with reward {reward:.3f}")
 
 
-def debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio):
-    top_size = max(1, int(population_size * tournament_k_ratio))
-    top = np.argsort(rewards)[::-1][:top_size]
+def debug_evaluate_population(rewards, tournament_k, elite_count):
+    top = np.argsort(rewards)[::-1][:tournament_k]
     print("\nMax = {:.3f}".format(rewards.max()))
     print("Min = {:.3f}".format(rewards.min()))
     print("Mean = {:.3f}".format(rewards.mean()))
@@ -64,7 +63,7 @@ def debug_evaluate_population(rewards, population_size, tournament_k_ratio, elit
     print(f"Top {min(5, len(top))} rewards:")
     for i in range(min(5, len(top))):
         print(f"{i+1}: ", rewards[top[i]])
-    print(f"Elite Count: {max(1, int(elite_ratio * population_size))}")
+    print(f"Elite Count: {elite_count}")
 
 
 def update_sigma_stagnation(
@@ -116,7 +115,7 @@ def update_sigma_stagnation(
 
 
 def genetic_algorithm(
-        generations=300, population_size=60, tournament_k_ratio=0.07, elite_ratio=.05, 
+        generations=300, population_size=100, tournament_k=4, elite_count=3, 
         crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
         sigma=0.5, sigma_decay=0.99, sigma_min=0.1,
         stagnation_ratio=0.05, population_restart_ratio=0.75
@@ -127,8 +126,8 @@ def genetic_algorithm(
     Parameters:
     - generations:              how many iterations of the evolutionary process to run.
     - population_size:          the number of candidate solutions (MLP parameter vectors) in each generation.
-    - tournament_k_ratio:       the fraction of the population to include in each tournament.
-    - elite_ratio:              the fraction of top individuals to carry over unchanged.
+    - tournament_k:             number of individuals to include in each tournament.
+    - elite_count:              number of top individuals to carry over unchanged.
     - crossover_rate:           the probability of performing crossover.
     - crossover_mask_prob:      the per-gene probability of taking a gene from parent1 during crossover.
     - mutation_rate:            the probability of mutating each parameter.
@@ -157,8 +156,8 @@ def genetic_algorithm(
     print(f"\n---------------------------------------------\n")
     print(f"Generations: {generations}")
     print(f"Population Size: {population_size}")
-    print(f"Tournament Top K Ratio: {tournament_k_ratio}")
-    print(f"Elite Ratio: {elite_ratio}")
+    print(f"Tournament K: {tournament_k}")
+    print(f"Elite Count: {elite_count}")
     print(f"Crossover Rate: {crossover_rate}")
     print(f"Crossover Mask Prob: {crossover_mask_prob}")
     print(f"Mutation Rate: {mutation_rate}")
@@ -179,7 +178,7 @@ def genetic_algorithm(
     best_params = deepcopy(population[np.argmax(rewards)]) # Keep track of the best parameters found so far
     best_reward = rewards.max() # Keep track of the best reward found so far
     
-    debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio) # Print diagnostics about the rewards distribution in the initial population
+    debug_evaluate_population(rewards, tournament_k, elite_count) # Print diagnostics about the rewards distribution in the initial population
     save_best_agent(best_params, best_reward) # Save the best agent from the initial population
     new_best_found = True # Flag to track if a new best agent was found in the current generation (used for saving)
     best_rewards = [best_reward] # Track the best reward of each generation for plotting
@@ -203,7 +202,6 @@ def genetic_algorithm(
         print(f"\nGeneration {generation}/{generations}")
 
         # Select elites from current population (based on current rewards)
-        elite_count = max(1, int(elite_ratio * population_size))
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         elites = [deepcopy(population[i]) for i in elite_idx]
         elite_rewards_carried = rewards[elite_idx].copy()  # carry forward without re-evaluation
@@ -214,8 +212,8 @@ def genetic_algorithm(
         new_population = []
         while len(new_population) < population_size:
             # Tournament selection
-            parent1 = tournament(population, population_size, tournament_k_ratio, rewards)
-            parent2 = tournament(population, population_size, tournament_k_ratio, rewards)
+            parent1 = tournament(population, tournament_k, rewards)
+            parent2 = tournament(population, tournament_k, rewards)
 
             # Uniform Crossover
             if np.random.rand() < crossover_rate:
@@ -240,7 +238,7 @@ def genetic_algorithm(
         population = new_population
         offspring_rewards = evaluate_population(agent_class, population[elite_count:])
         rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
-        debug_evaluate_population(rewards, population_size, tournament_k_ratio, elite_ratio)
+        debug_evaluate_population(rewards, tournament_k, elite_count)
 
         # Track global best: check both the old elite (carried forward) and the new population's best
         new_pop_best_idx = np.argmax(rewards)

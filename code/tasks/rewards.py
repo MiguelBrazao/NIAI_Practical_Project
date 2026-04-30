@@ -8,8 +8,8 @@ class Rewards:
         power_ups_penalty_value=2.0,        # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
         kills_reward_value=1.0,             # reward for defeating enemies (encourages combat and threat elimination)
         kills_threshold=48.0,               # distance threshold in world pixels to consider an enemy kill valid (prevents false positives from enemies walking off screen)
-        distance_reward_ratio=1.0,          # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
-        death_penalty_value=100.0,          # penalty for dying (can be tuned to balance with other rewards)                
+        progression_reward_ratio=1.0,          # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
+        deaths_penalty_value=100.0,          # penalty for dying (can be tuned to balance with other rewards)                
     ):
         self.forward_reward_value = forward_reward_value
         self.jump_reward_value = jump_reward_value
@@ -18,15 +18,15 @@ class Rewards:
         self.power_ups_penalty_value = power_ups_penalty_value
         self.kills_reward_value = kills_reward_value
         self.kills_threshold = kills_threshold
-        self.distance_reward_ratio = distance_reward_ratio
-        self.death_penalty_value = death_penalty_value
+        self.progression_reward_ratio = progression_reward_ratio
+        self.deaths_penalty_value = deaths_penalty_value
 
         self.last_sense = None              # to store the last observation for reward comparison (e.g., to compute movement, coin collection, enemy kills)
         self.vars_current_obs = None        # to store the current observation variables for easy access (e.g., position, coins, enemies) and to avoid repeated unpacking during reward calculations
         self.vars_last_obs = None           # to store the last observation variables for comparison with current observation in reward calculations (e.g., to compute movement, coin collection, enemy kills)
         self.reward = 0.0                   # to store the computed reward for the current step, which can be accessed by the task's get_sensors method to return as part of the fitness packet
-        self.check_distance = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
-        self.check_death = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)      
+        self.use_progression = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
+        self.use_deaths = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)      
 
 
     def reset(self):
@@ -83,10 +83,10 @@ class Rewards:
             Or penalize dying in the fitness evaluation.
             """
             terminal_reward = 0.0
-            if self.check_distance:
-                terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.distance_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
-            if self.check_death and self.status != 1:
-                terminal_reward -= float(self.death_penalty_value)
+            if self.use_progression:
+                terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
+            if self.use_deaths and self.status != 1:
+                terminal_reward -= float(self.deaths_penalty_value)
 
             self.reward = terminal_reward  # assign (not +=): self.reward still holds last step's value which was already counted by perform_action
             self.cum_reward += self.reward  # perform_action is skipped when finished=True, so add directly
@@ -123,7 +123,7 @@ class Rewards:
           the episode ends (e.g., when Mario reaches the finish line or dies) to reflect how 
           close the agent was to finishing the level.
         """
-        self.check_distance = True  # set flag to check distance in get_sensors, where we have access to the status and can apply the reward properly as a terminal reward
+        self.use_progression = True  # set flag to check distance in get_sensors, where we have access to the status and can apply the reward properly as a terminal reward
 
     
     def forward(self):
@@ -234,4 +234,4 @@ class Rewards:
         Penalizes Mario for dying, which encourages the agent to 
         avoid dangerous situations and learn survival strategies.
         """
-        self.check_death = True  # set flag to check for death in get_sensors, where we have access to the status and can apply the penalty properly as a terminal reward
+        self.use_deaths = True  # set flag to check for death in get_sensors, where we have access to the status and can apply the penalty properly as a terminal reward
