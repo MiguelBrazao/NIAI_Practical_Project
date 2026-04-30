@@ -2,15 +2,15 @@ class Rewards:
     def __init__(
                 self, 
 
-                controls_reward_value=1.0,                      # reward for taking an action (can be tuned to encourage more active behavior)
+                controls_reward_value=0.5,                      # reward for taking an action — kept small so button-press signals don't drown out forward/jump rewards
                 controls_penalty_value=2.0,                     # penalty for pressing too many buttons at once (e.g., more than 2) to encourage more strategic and less erratic actions
                 controls_button_threshold=3,                    # threshold for number of buttons pressed to start applying the controls penalty (e.g., 3 means penalty starts when pressing 3 or more buttons simultaneously)
 
-                forward_reward_value=1.0,                       # base reward for moving forward (positive movement)
+                forward_reward_value=2.0,                       # base reward for moving forward — primary objective, must dominate per-step signals
                 backward_penalty_value=2.0,                     # base penalty for moving backward (negative movement)
                 still_penalty_value=2.0,                        # penalty for not moving (movement = 0)
 
-                jump_reward_value=1.0,                          # reward for jumping when it's beneficial (e.g., to survive or collect an item, determined by environment info) 
+                jump_reward_value=2.0,                          # reward for jumping when beneficial — clearing terrain is harder than walking, worth more than one forward step
                 jump_penalty_value=2.0,                         # penalty for jumping when it's not beneficial (e.g., unnecessary jump that could lead to danger, determined by environment info)
                 jump_threshold=3.0,                             # threshold for determining a jump action based on the distance to the nearest relevant obstacle/enemy (can be tuned for different behaviors)
 
@@ -22,7 +22,7 @@ class Rewards:
                 shoot_penalty_value=2.0,                        # penalty for shooting when it's not beneficial (e.g., unnecessary shooting that could lead to danger, determined by environment info)
                 shoot_threshold=3.0,                            # threshold for determining a shoot action based on the distance to the nearest enemy (can be tuned for different behaviors)
 
-                obstacles_reward_value=1.0,                     # reward for effectively navigating around obstacles (e.g., rewarding proximity to soft obstacles that can be passed and penalizing proximity to hard obstacles that should be avoided, determined by environment info)
+                obstacles_reward_value=2.0,                     # reward for transposing an obstacle — must exceed obstacles_penalty_value so clearing is always more attractive than stagnating
                 obstacles_penalty_value=1.0,                    # penalty for being close to hard obstacles or far from soft obstacles
                 obstacles_threshold=3.0,                        # max grid-cell distance at which an obstacle is considered "close enough" to track for transposition
 
@@ -35,7 +35,7 @@ class Rewards:
                 
                 death_penalty_value=100.0,                      # penalty for dying (can be tuned to balance with other rewards)                
                 
-                terminal_distance_scale=1.0,                    # divisor applied to sense.distance in the terminal reward (e.g. 16.0 converts world-pixels to grid cells, bringing it into the same scale as per-step rewards)
+                terminal_distance_scale=16.0,                   # divides sense.distance (raw world-pixels) by cell_size to convert to grid cells, keeping terminal reward in the same scale as per-step rewards
                 ):
         
         # Reward parameters (can be tuned for different behaviors)
