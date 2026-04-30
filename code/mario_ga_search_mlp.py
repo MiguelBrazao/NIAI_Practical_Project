@@ -118,8 +118,8 @@ def update_sigma_stagnation(
 def genetic_algorithm(
         generations=300, population_size=60, tournament_k_ratio=0.07, elite_ratio=.05, 
         crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
-        sigma=0.25, sigma_decay=0.99, sigma_min=0.1,
-        stagnation_ratio=0.05, population_restart_ratio=0.5
+        sigma=0.5, sigma_decay=0.99, sigma_min=0.1,
+        stagnation_ratio=0.05, population_restart_ratio=0.75
     ):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.

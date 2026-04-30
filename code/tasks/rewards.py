@@ -8,6 +8,7 @@ class Rewards:
         power_ups_penalty_value=2.0,        # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
         kills_reward_value=1.0,             # reward for defeating enemies (encourages combat and threat elimination)
         kills_threshold=48.0,               # distance threshold in world pixels to consider an enemy kill valid (prevents false positives from enemies walking off screen)
+        distance_reward_ratio=1.0,          # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
         death_penalty_value=100.0,          # penalty for dying (can be tuned to balance with other rewards)                
     ):
         self.forward_reward_value = forward_reward_value
@@ -17,6 +18,7 @@ class Rewards:
         self.power_ups_penalty_value = power_ups_penalty_value
         self.kills_reward_value = kills_reward_value
         self.kills_threshold = kills_threshold
+        self.distance_reward_ratio = distance_reward_ratio
         self.death_penalty_value = death_penalty_value
 
         self.last_sense = None              # to store the last observation for reward comparison (e.g., to compute movement, coin collection, enemy kills)
@@ -82,7 +84,7 @@ class Rewards:
             """
             terminal_reward = 0.0
             if self.check_distance:
-                terminal_reward = sense.distance * (1 + self.level_difficulty)  # scale distance reward by level difficulty to encourage progress more in harder levels
+                terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.distance_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
             if self.check_death and self.status != 1:
                 terminal_reward -= float(self.death_penalty_value)
 
