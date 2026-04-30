@@ -36,7 +36,6 @@ def make_evolution_plot(best, mean, title, save=False):
     plt.clf()
     
 
-# Tournament parent selection
 def tournament(population, population_size, tournament_k_ratio, rewards, replace=False):
     eligible = np.where(np.isfinite(rewards))[0]
     pool = eligible if len(eligible) >= 2 else np.arange(population_size)
