@@ -142,7 +142,7 @@ class Rewards:
             self.reward += self.forward_reward_value
 
 
-    def jump(self):
+    def jumps(self):
         """
         Computes a reward for upward movement (jumping) 
         as a positive signal when Mario should jump.
@@ -227,7 +227,7 @@ class Rewards:
             self.reward += float(self.kills_reward_value) * (last_count - cur_count)
 
     
-    def death(self):
+    def deaths(self):
         """
         Penalizes Mario for dying, which encourages the agent to 
         avoid dangerous situations and learn survival strategies.
