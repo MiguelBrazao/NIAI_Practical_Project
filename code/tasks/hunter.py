@@ -10,7 +10,9 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
-        
+        self.progression_reward_ratio = 1/1200      # test between 2400 and 600 -- accumulates after episode of steps
+        self.kills_reward_value = 5.0               # test between 1.0 and 10.0 -- accumulates per step
+
 
     def compute_reward(self, current_obs, last_obs):
         """
@@ -31,9 +33,6 @@ class HunterTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, and penalizing 
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
-
-        self.progression_reward_ratio = 1/1200      # test between 2400 and 600 -- accumulates after episode of steps
-        self.kills_reward_value = 5.0               # test between 1.0 and 10.0 -- accumulates per step
 
         self.observations(current_obs, last_obs)    # Update internal state with current and last observations for reward calculations and get_sensors access
         self.progression()                          # Compute reward based on level progression (distance traveled forward) -- primary objective to encourage forward movement and level completion
