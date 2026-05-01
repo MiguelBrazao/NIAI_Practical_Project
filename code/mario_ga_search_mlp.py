@@ -66,7 +66,9 @@ def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
         print(f"{i+1}: ", rewards[top[i]])
     print(f"Elite Count: {elite_count}")
     if kills is not None:
-        print(f"\nBest Candidate Kills: {kills[np.argmax(rewards)]}")
+        best_kills = kills[np.argmax(rewards)]
+        if best_kills > 0:
+            print(f"\nBest Candidate Kills: {best_kills}")
 
 
 def update_sigma_stagnation(
