@@ -10,8 +10,8 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
-        self.progression_reward_ratio = 1/3200      # test between 3200 (level width) and 800 -- accumulates after episode of steps
-        self.kills_reward_value = 5.0               # test between 1.0 and 10.0 -- accumulates per step
+        self.forward_reward_value = 0.1           # small forward reward to encourage progress but not camping
+        self.kills_reward_value = 100.0             # high kill reward so kills dominate progression
 
 
     def compute_reward(self, current_obs, last_obs):
@@ -35,7 +35,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         """
 
         self.observations(current_obs, last_obs)    # Update internal state with current and last observations for reward calculations and get_sensors access
-        self.progression()                          # Compute reward based on level progression (distance traveled forward) -- primary objective to encourage forward movement and level completion
+        self.forward()                              # Dense forward reward, gated by kills() when enemies are nearby
         self.kills()                                # Reward for defeating enemies (secondary: encourages combat and threat elimination); also increments kill_count
         #self.deaths()
         #self.power_ups()                           # Reward for collecting power-ups (secondary: encourages exploration to find enemies)

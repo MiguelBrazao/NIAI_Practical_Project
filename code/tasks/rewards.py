@@ -28,6 +28,7 @@ class Rewards:
         self.kill_count = 0                 # diagnostic counter: total enemies killed this episode (reset each episode)      
         self.use_progression = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
         self.use_deaths = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
+        self.stop_forward_rewards = False  # when True, forward rewards are paused until a kill happens
 
 
     def reset(self):
@@ -37,6 +38,7 @@ class Rewards:
         """
         self.last_sense = None
         self.kill_count = 0
+        self.stop_forward_rewards = False
 
 
     def perform_action(self, action):
@@ -86,7 +88,7 @@ class Rewards:
             """
             terminal_reward = 0.0
             if self.use_progression:
-                terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale progression reward by level difficulty and progression reward ratio to encourage progress more in harder levels
+                terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
             if self.use_deaths and self.status != 1:
                 terminal_reward -= float(self.deaths_penalty_value)
 
@@ -134,6 +136,8 @@ class Rewards:
         encourages the agent to make progress through 
         the level.
         """
+        if self.stop_forward_rewards:
+            return
         # If we don't have a previous observation or mario position info, do nothing
         if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
             return
@@ -218,7 +222,16 @@ class Rewards:
         cur_count = len(cur_enemies)
         last_count = len(last_enemies)
 
+        # Enemy is considered "close" for gating purposes based on current observation.
+        enemy_is_close = any(
+            (dx ** 2 + dy ** 2) <= self.kills_threshold ** 2
+            for dx, dy, *_ in cur_enemies
+        )
+
         if cur_count >= last_count:
+            # No kill this step: if enemy is close, stop forward rewards until episode reset.
+            if enemy_is_close:
+                self.stop_forward_rewards = True
             return  # no enemies killed this step
 
         # Check whether any enemy in last step was close enough to Mario to plausibly be killed
