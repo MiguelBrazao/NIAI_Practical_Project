@@ -1,15 +1,27 @@
 class Rewards:
     def __init__(
         self, 
-        kills_reward_value=500.0,           # reward for defeating enemies (encourages combat and threat elimination)
+        forward_reward_value=1.0,           # base reward for moving forward — primary objective, must dominate per-step signals
+        jump_reward_value=1.0,              # reward for jumping when beneficial — clearing terrain is harder than walking, worth more than one forward step
+        coins_reward_value=1.0,             # small reward for collecting coins (encourages exploration and coin collection)
+        power_ups_reward_value=1.0,         # reward for collecting power-ups (e.g., mushrooms, fire flowers)
+        power_ups_penalty_value=2.0,        # penalty for losing power-ups (e.g., going from fire flower to mushroom or small Mario)
+        kills_reward_value=1.0,             # reward for defeating enemies (encourages combat and threat elimination)
         kills_threshold_min=0.0,            # minimum distance in world pixels for a kill to be valid (0 = stomp/contact kills count)
-        kills_threshold_max=200.0,          # maximum distance in world pixels for a kill to be valid (excludes enemies walking off screen at ~256px+)
+        kills_threshold_max=500.0,          # maximum distance in world pixels for a kill to be valid (excludes enemies walking off screen at ~256px+)
         progression_reward_ratio=1.0,       # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
+        deaths_penalty_value=100.0,         # penalty for dying (can be tuned to balance with other rewards)                
     ):
+        self.forward_reward_value = forward_reward_value
+        self.jump_reward_value = jump_reward_value
+        self.coins_reward_value = coins_reward_value
+        self.power_ups_reward_value = power_ups_reward_value
+        self.power_ups_penalty_value = power_ups_penalty_value
         self.kills_reward_value = kills_reward_value
         self.kills_threshold_min = kills_threshold_min
         self.kills_threshold_max = kills_threshold_max
         self.progression_reward_ratio = progression_reward_ratio
+        self.deaths_penalty_value = deaths_penalty_value
 
         self.last_sense = None                                  # to store the last observation for reward comparison (e.g., to compute movement, coin collection, enemy kills)
         self.vars_current_obs = None                            # to store the current observation variables for easy access (e.g., position, coins, enemies) and to avoid repeated unpacking during reward calculations
@@ -17,6 +29,7 @@ class Rewards:
         self.reward = 0.0                                       # to store the computed reward for the current step, which can be accessed by the task's get_sensors method to return as part of the fitness packet
         self.kill_count = 0                                     # diagnostic counter: total enemies killed this episode (reset each episode)      
         self.use_progression = False                            # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
+        self.use_deaths = False                                 # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
         self.mario_position_when_he_doesnt_kill = None          # to track Mario's position when progression rewards are stopped due to a nearby enemy, which can help prevent false positives in the kills() method when checking for enemy proximity to determine whether a kill is valid (i.e., we only want to stop forward rewards if an enemy is close enough to plausibly be a threat, and we want to check for kills based on whether an enemy was close in the last step when the enemy count dropped, rather than just checking the current step which could lead to false positives if an enemy walked off screen)
 
     def reset(self):
@@ -26,8 +39,8 @@ class Rewards:
         """
         self.last_sense = None
         self.kill_count = 0
+        self.stop_progression_reward = False
         self.mario_position_when_he_doesnt_kill = None
-        
 
     def perform_action(self, action):
         """
@@ -80,6 +93,8 @@ class Rewards:
                     # If progression rewards were stopped due to a nearby enemy, apply a terminal reward based on how far Mario got before that happened, which encourages killing nearby enemies rather than just avoiding them and stopping progression rewards.
                     terminal_reward = (self.mario_position_when_he_doesnt_kill[0] * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels, even if the agent got stopped by a nearby enemy before reaching the finish line
                     terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
+            if self.use_deaths and self.status != 1:
+                terminal_reward -= float(self.deaths_penalty_value)
 
             self.reward = terminal_reward  # assign (not +=): self.reward still holds last step's value which was already counted by perform_action
             self.cum_reward += self.reward  # perform_action is skipped when finished=True, so add directly
@@ -117,6 +132,80 @@ class Rewards:
           close the agent was to finishing the level.
         """
         self.use_progression = True  # set flag to check distance in get_sensors, where we have access to the status and can apply the reward properly as a terminal reward
+
+    
+    def forward(self):
+        """
+        Computes a reward for forward movement, which 
+        encourages the agent to make progress through 
+        the level.
+        """
+        # If we don't have a previous observation or mario position info, do nothing
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
+            return
+
+        cur_x, _ = self.vars_current_obs['mario_pos']
+        last_x, _ = self.vars_last_obs['mario_pos']
+        cur_movement = cur_x - last_x
+
+        if cur_movement > 0:
+            self.reward += self.forward_reward_value
+
+
+    def jumps(self):
+        """
+        Computes a reward for upward movement (jumping) 
+        as a positive signal when Mario should jump.
+        """
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_pos') is None or self.vars_last_obs.get('mario_pos') is None:
+            return
+
+        _, cur_y = self.vars_current_obs['mario_pos']
+        _, last_y = self.vars_last_obs['mario_pos']
+
+        on_ground = self.vars_current_obs.get('on_ground', True)
+
+        if cur_y > last_y and not on_ground:
+            # Reward for being in the air and rising, which encourages the agent to jump when it's beneficial (e.g., to clear an obstacle or reach a power-up).
+            self.reward += self.jump_reward_value
+
+
+    def coins(self):
+        """
+        Computes a reward for collecting coins, which 
+        encourages the agent to explore and gather 
+        resources in the level.
+        """
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('coins') is None or self.vars_last_obs.get('coins') is None:
+            return
+        
+        cur_coins = self.vars_current_obs['coins']
+        last_coins = self.vars_last_obs['coins']
+
+        if cur_coins != last_coins: #
+            # Reward for each new coin collected (can be tuned)
+            self.reward += float(self.coins_reward_value) * (cur_coins - last_coins)
+            # if cur_coins < last_coins: likely wrapped (got extra life), ignore
+
+
+    def power_ups(self):
+        """
+        Computes a reward for collecting power-ups (e.g., mushrooms, 
+        fire flowers), which encourages the agent to seek out and 
+        utilize power-ups for enhanced abilities.
+        """
+        if self.vars_last_obs is None or self.vars_current_obs is None or self.vars_current_obs.get('mario_mode') is None or self.vars_last_obs.get('mario_mode') is None:
+            return
+        
+        cur_mode = self.vars_current_obs['mario_mode']
+        last_mode = self.vars_last_obs['mario_mode']
+
+        if cur_mode > last_mode:
+            # Reward for powering up (can be tuned based on the mode increase)
+            self.reward += float(self.power_ups_reward_value) * (cur_mode - last_mode)
+        elif cur_mode < last_mode and cur_mode > 0:  # only penalize if still alive (mode > 0)
+            self.reward -= float(self.power_ups_penalty_value) * (last_mode - cur_mode)
+            # if cur_mode == 0: Mario is dead, death_penalty in get_sensors handles it
 
 
     # We should check enemy count change for a reward, but we should be careful about enemies walking off screen (which can cause false positives).
@@ -160,4 +249,12 @@ class Rewards:
         if enemy_was_close:
             n_kills = last_count - cur_count
             self.kill_count += n_kills
-            self.reward += float(self.kills_reward_value) * n_kills * (1 + self.level_difficulty)  # scale kill reward by level difficulty to encourage killing more in harder levels, which can help prevent the agent from just rushing to the finish line and ignoring enemies in harder levels where they are more of a threat
+            self.reward += float(self.kills_reward_value) * n_kills
+
+    
+    def deaths(self):
+        """
+        Penalizes Mario for dying, which encourages the agent to 
+        avoid dangerous situations and learn survival strategies.
+        """
+        self.use_deaths = True  # set flag to check for death in get_sensors, where we have access to the status and can apply the penalty properly as a terminal reward
