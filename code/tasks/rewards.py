@@ -84,6 +84,7 @@ class Rewards:
                 if self.mario_position_when_he_doesnt_kill is not None:
                     # If progression rewards were stopped due to a nearby enemy, apply a terminal reward based on how far Mario got before that happened, which encourages killing nearby enemies rather than just avoiding them and stopping progression rewards.
                     terminal_reward = (self.mario_position_when_he_doesnt_kill[0] * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels, even if the agent got stopped by a nearby enemy before reaching the finish line
+                else:
                     terminal_reward = (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio  # scale distance reward by level difficulty and distance reward ratio to encourage progress more in harder levels
 
             self.reward = terminal_reward  # assign (not +=): self.reward still holds last step's value which was already counted by perform_action
