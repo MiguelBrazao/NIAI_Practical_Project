@@ -298,7 +298,7 @@ def genetic_algorithm(
     inst.set_param_vector(best_params)
     return best_params
 
-
+# Seeds to use: 42, 123, 999, 2024, 0
 if __name__ == "__main__":
     np.random.seed(int(sys.argv[1]))
     torch.random.manual_seed(int(sys.argv[1]))
