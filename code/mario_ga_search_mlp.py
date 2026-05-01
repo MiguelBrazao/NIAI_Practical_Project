@@ -37,10 +37,10 @@ def make_evolution_plot(best, mean, title, save=False):
     
 
 def tournament(population, tournament_k, rewards, replace=False):
-    eligible = np.where(np.isfinite(rewards))[0]
-    pool = eligible if len(eligible) >= 2 else np.arange(len(population))
-    idx = np.random.choice(pool, min(tournament_k, len(pool)), replace=replace)
-    return deepcopy(population[idx[np.argmax(rewards[idx])]])
+    eligible = np.where(np.isfinite(rewards))[0] # only consider individuals with valid rewards for tournament selection (exclude -inf from reinitialized individuals)
+    pool = eligible if len(eligible) >= 2 else np.arange(len(population)) # if not enough eligible individuals, fallback to entire population to avoid errors
+    idx = np.random.choice(pool, min(tournament_k, len(pool)), replace=replace) # select tournament_k individuals from the eligible pool without replacement (or with replacement if not enough eligible)
+    return deepcopy(population[idx[np.argmax(rewards[idx])]]) # return a copy of the best individual from the tournament
 
 
 def save_best_agent(params, reward):
@@ -74,15 +74,17 @@ def update_sigma_stagnation(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
         sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
-        stagnation_ratio, generations, population_restart_ratio
+        stagnation_ratio, generations, restart_ratio_min, restart_ratio_max, reference_std
     ):
     """
     Updates sigma and stagnation state after each generation.
 
     - Decays current_sigma toward sigma_min each call.
     - Resets stagnation_count to 0 when a new best was found; increments otherwise.
-    - When stagnation_count reaches stagnation_limit, reinitializes the worst half of
+    - When stagnation_count reaches stagnation_limit, reinitializes the bottom portion of
       the population with fresh random individuals and boosts sigma to re-explore.
+    - The restart ratio is adaptive: low reward std (converged population) → large restart;
+      high reward std (diverse population) → small restart.
 
     Returns:
         current_sigma (float), stagnation_count (int), population (list), rewards (np.ndarray)
@@ -103,16 +105,24 @@ def update_sigma_stagnation(
 
     # Stagnation restart
     if stagnation_count >= stagnation_limit:
-        n_reinit = int(population_size * population_restart_ratio)
-        worst_idx = np.argsort(rewards)[:n_reinit]
-        for i in worst_idx:
-            population[i] = np.random.randn(num_params)
-            rewards[i] = -float('inf')  # exclude reinitialized from next tournament
-        current_sigma = sigma_max  # boost to sigma_max on restart for maximum exploration with fresh individuals
-        stagnation_count = 0
+        # Adaptive restart ratio: low std (converged) → restart more; high std (diverse) → restart less
+        finite_rewards = rewards[np.isfinite(rewards)] # consider only finite rewards for std calculation to avoid issues with -inf from reinitialized individuals
+        current_std = finite_rewards.std() if len(finite_rewards) > 1 else 0.0 # handle case with 0 or 1 valid rewards
+        std_norm = np.clip(current_std / reference_std, 0.0, 1.0) if reference_std > 0 else 0.0 # normalise to [0,1] based on initial generation's std, with fallback to 0 if reference_std is 0 (e.g., all rewards are identical)
+        population_restart_ratio = restart_ratio_max - (restart_ratio_max - restart_ratio_min) * std_norm # linear interpolation between min and max restart ratio based on normalised std
+
+        n_reinit = int(population_size * population_restart_ratio) # number of individuals to reinitialize
+        worst_idx = np.argsort(rewards)[:n_reinit] # indices of the worst-performing individuals to replace with new random ones
+        for i in worst_idx: 
+            population[i] = np.random.randn(num_params) # reinitialize with new random parameters
+            rewards[i] = -float('inf') # exclude reinitialized from next tournament
+        # Adaptive sigma on restart: low std (converged) → sigma_max; high std (diverse) → sigma
+        current_sigma = sigma + (sigma_max - sigma) * (1.0 - std_norm) # linear interpolation between sigma and sigma_max based on normalised std
+        stagnation_count = 0 # reset stagnation count after restart
         print(f"\nStagnation Restart")
-        print(f"\nReinitialized {n_reinit} individuals")
-        print(f"Sigma boosted to {current_sigma:.4f}")
+        print(f"Reward Std: {current_std:.1f} (ref: {reference_std:.1f}, norm: {std_norm:.2f})")
+        print(f"Restart Ratio: {population_restart_ratio:.2f} → Reinitialized {n_reinit} individuals")
+        print(f"Sigma set to {current_sigma:.4f}")
         print(f"\n---------------------------------------------")
 
     print(f"\nSigma: {current_sigma:.4f}")
@@ -125,7 +135,7 @@ def genetic_algorithm(
         generations=500, population_size=100, tournament_k=4, elite_count=3, 
         crossover_rate=0.95, crossover_mask_prob=0.5, mutation_rate=0.1, 
         sigma=0.5, sigma_decay=0.99, sigma_min=0.1, sigma_max=1.5,
-        stagnation_ratio=0.05, population_restart_ratio=0.75
+        stagnation_ratio=0.05, restart_ratio_min=0.25, restart_ratio_max=0.75
     ):
     """
     Genetic Algorithm with Tournament Selection, Uniform Crossover, Gaussian Mutation, and Elitism.
@@ -145,8 +155,8 @@ def genetic_algorithm(
     - stagnation_ratio:         fraction of total generations without improvement before reinitializing bottom 
                                 part of population (e.g. 0.05 with 100 gens → triggers after 5 stagnant gens; 
                                 clamped to at least 1).
-    - population_restart_ratio: fraction of population to reinitialize upon stagnation 
-                                (e.g. 0.5 → reinit bottom half).
+    - restart_ratio_min:        minimum fraction of population to reinitialize (used when reward std is high).
+    - restart_ratio_max:        maximum fraction of population to reinitialize (used when reward std is low).
                         
     Evolves MLP weights using a Genetic Algorithm with:
         - Tournament selection (parent selection)
@@ -174,7 +184,8 @@ def genetic_algorithm(
     print(f"Sigma Min: {sigma_min}")
     print(f"Sigma Max: {sigma_max}")
     print(f"Stagnation Ratio: {stagnation_ratio}")
-    print(f"Population Restart Ratio: {population_restart_ratio}")
+    print(f"Restart Ratio Min: {restart_ratio_min}")
+    print(f"Restart Ratio Max: {restart_ratio_max}")
     print(f"\n---------------------------------------------")
     print(f"\nStagnation Limit is {stagnation_limit} generations")
     print(f"\n---------------------------------------------")
@@ -186,6 +197,7 @@ def genetic_algorithm(
     rewards, kills = evaluate_population(agent_class, population) # Evaluate all individuals in the population and get their rewards
     best_params = deepcopy(population[np.argmax(rewards)]) # Keep track of the best parameters found so far
     best_reward = rewards.max() # Keep track of the best reward found so far
+    reference_std = rewards.std()  # baseline std from fully random generation 1, used to normalise adaptive restart ratio
     
     debug_evaluate_population(rewards, tournament_k, elite_count, kills) # Print diagnostics about the rewards distribution in the initial population
     save_best_agent(best_params, best_reward) # Save the best agent from the initial population
@@ -201,7 +213,7 @@ def genetic_algorithm(
         new_best_found, current_sigma, stagnation_count,
         population, rewards, num_params,
         sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
-        stagnation_ratio, generations, population_restart_ratio
+        stagnation_ratio, generations, restart_ratio_min, restart_ratio_max, reference_std
     )
     new_best_found = False
     
@@ -276,7 +288,7 @@ def genetic_algorithm(
             new_best_found, current_sigma, stagnation_count,
             population, rewards, num_params,
             sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
-            stagnation_ratio, generations, population_restart_ratio
+            stagnation_ratio, generations, restart_ratio_min, restart_ratio_max, reference_std
         )
         new_best_found = False
 
