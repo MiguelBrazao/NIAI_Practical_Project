@@ -3,12 +3,14 @@ class Rewards:
         self, 
         kills_reward_value=500.0,           # reward for defeating enemies (encourages combat and threat elimination)
         kills_threshold_min=0.0,            # minimum distance in world pixels for a kill to be valid (0 = stomp/contact kills count)
-        kills_threshold_max=200.0,          # maximum distance in world pixels for a kill to be valid (excludes enemies walking off screen at ~256px+)
+        kills_threshold_stomp=64.0,         # max distance for stomp kills — used when no fireball is on screen (~4 tiles)
+        kills_threshold_fireball=200.0,     # max distance for fireball kills — used only when a fireball tile (25) is present in level_scene (~12 tiles)
         progression_reward_ratio=1.0,       # ratio to scale the distance reward (can be tuned to balance with other rewards and ensure it dominates as the primary objective)
     ):
         self.kills_reward_value = kills_reward_value
         self.kills_threshold_min = kills_threshold_min
-        self.kills_threshold_max = kills_threshold_max
+        self.kills_threshold_stomp = kills_threshold_stomp
+        self.kills_threshold_fireball = kills_threshold_fireball
         self.progression_reward_ratio = progression_reward_ratio
 
         self.last_sense = None                                  # to store the last observation for reward comparison (e.g., to compute movement, coin collection, enemy kills)
@@ -19,6 +21,8 @@ class Rewards:
         self.use_progression = False                            # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
         self.mario_position_when_he_doesnt_kill = None          # to track Mario's position when progression rewards are stopped due to a nearby enemy, which can help prevent false positives in the kills() method when checking for enemy proximity to determine whether a kill is valid (i.e., we only want to stop forward rewards if an enemy is close enough to plausibly be a threat, and we want to check for kills based on whether an enemy was close in the last step when the enemy count dropped, rather than just checking the current step which could lead to false positives if an enemy walked off screen)
 
+        self.FIREBALL_TILE = 25                                 # tile code for fireball in level_scene, used to determine whether to apply the wider kill threshold for fireball kills
+
     def reset(self):
         """
         Resets the internal state of the reward system. This method is called at the beginning of each episode
@@ -27,7 +31,7 @@ class Rewards:
         self.last_sense = None
         self.kill_count = 0
         self.mario_position_when_he_doesnt_kill = None
-        
+
 
     def perform_action(self, action):
         """
@@ -127,8 +131,9 @@ class Rewards:
         count dropped AND at least one enemy in the previous step was within the interval
         [kills_threshold_min, kills_threshold_max] world pixels of Mario.
         - kills_threshold_min=0 includes stomp/contact kills (Mario directly on enemy).
-        - kills_threshold_max excludes enemies that simply walked off the screen edge (~256px+).
-        - Fireball kills are captured by the wider max range (~200px).
+        - kills_threshold_stomp is the max range when no fireball is on screen (~4 tiles).
+        - kills_threshold_fireball is the max range when Mario's fireball sprite is visible in the last frame.
+        - Enemies that walked off screen (~256px+) are excluded by both thresholds.
         """
         if self.vars_last_obs is None or self.vars_current_obs is None:
             return
@@ -138,10 +143,18 @@ class Rewards:
         cur_count = len(cur_enemies)
         last_count = len(last_enemies)
 
+        # Determine effective max threshold: wide range only when Mario's fireball is visible in level_scene
+        _tmin2 = self.kills_threshold_min ** 2
+        cur_scene  = self.vars_current_obs.get('level_scene')
+        last_scene = self.vars_last_obs.get('level_scene')
+        has_fireball_cur  = cur_scene  is not None and (cur_scene  == self.FIREBALL_TILE).any()
+        has_fireball_last = last_scene is not None and (last_scene == self.FIREBALL_TILE).any()
+        _tmax2_cur  = (self.kills_threshold_fireball if has_fireball_cur  else self.kills_threshold_stomp) ** 2
+        _tmax2_last = (self.kills_threshold_fireball if has_fireball_last else self.kills_threshold_stomp) ** 2
+
         # Enemy is considered "close" for gating purposes based on current observation.
-        _tmin2, _tmax2 = self.kills_threshold_min ** 2, self.kills_threshold_max ** 2
         enemy_is_close = any(
-            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2
+            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2_cur
             for dx, dy, *_ in cur_enemies
         )
 
@@ -153,7 +166,7 @@ class Rewards:
 
         # Check whether any enemy in last step was within the valid kill range
         enemy_was_close = any(
-            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2
+            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2_last
             for dx, dy, *_ in last_enemies
         )
 
