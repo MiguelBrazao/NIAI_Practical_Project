@@ -176,3 +176,4 @@ class Rewards:
             n_kills = last_count - cur_count
             self.kill_count += n_kills
             self.reward += float(self.kills_reward_value) * n_kills * (1 + self.level_difficulty)  # scale kill reward by level difficulty to encourage killing more in harder levels, which can help prevent the agent from just rushing to the finish line and ignoring enemies in harder levels where they are more of a threat
+            self.mario_position_when_he_doesnt_kill = None  # reset position tracking for stopping progression rewards since we got a valid kill this step, which means the enemy was close and we successfully killed it, so we can allow progression rewards again until/unless we encounter another nearby enemy without killing it
