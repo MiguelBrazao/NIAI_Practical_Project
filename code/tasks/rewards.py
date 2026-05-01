@@ -23,6 +23,7 @@ class Rewards:
 
         self.FIREBALL_TILE = 25                                 # tile code for fireball in level_scene, used to determine whether to apply the wider kill threshold for fireball kills
 
+
     def reset(self):
         """
         Resets the internal state of the reward system. This method is called at the beginning of each episode
