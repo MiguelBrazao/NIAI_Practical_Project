@@ -9,6 +9,7 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "MoveForward"
+        self.kills_reward_value = 0.0             # no kill reward since only forward progression matters for this task
         
 
     def compute_reward(self, current_obs, last_obs):
@@ -31,7 +32,9 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
           undesirable behaviors (e.g., cowardice or reckless actions).
         """
 
+        self.observations(current_obs, last_obs)    # Populate vars_current_obs / vars_last_obs required by reward helpers
         self.progression()                          # Compute final raw reward based on level progression (distance traveled forward)
+        self.kills()                                # Diagnostic only: track kill_count without affecting reward
         return self.reward                          # Return the computed reward and reset internal state for next step 
 
 

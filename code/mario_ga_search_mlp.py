@@ -22,16 +22,17 @@ def timer_context(label):
         print(f"[{label}] Elapsed time: {end - start:.4f} seconds")
 
 
-def make_evolution_plot(best, mean, title, save=False):
+def make_evolution_plot(best, mean, save=False):
+    mode = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
     plt.plot(best, label='Best Reward')
     plt.plot(mean, label='Mean Reward')
     plt.xlabel('Generation')
     plt.ylabel('Reward')
-    plt.title(title)
+    plt.title('Genetic Algorithm Evolution - ' + mode.capitalize() + f' (Best Reward: {best[-1]:.3f})')
     plt.legend()
     plt.draw()
     if save:
-        plt.savefig(f'{title}.png')
+        plt.savefig(f'ga_{mode}_seed_{sys.argv[1]}_{best[-1]:.3f}.png')
     plt.pause(0.01)
     plt.clf()
     
@@ -292,7 +293,7 @@ def genetic_algorithm(
         )
         new_best_found = False
 
-    make_evolution_plot(best_rewards, mean_rewards, "GA", True)
+    make_evolution_plot(best_rewards, mean_rewards,  True)
     inst = MLPAgent()
     inst.set_param_vector(best_params)
     return best_params

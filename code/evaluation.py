@@ -21,14 +21,14 @@ VISUALIZE = False if _vis_env in ('0', 'false', 'no') else True
 
 
 port_list = [4242 + i for i in range(N_PROCESSES)]
-def evaluate_agent(agent, task, episodes=1):
+def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     """
     Evaluates the agent on the task for a given number of episodes.
     Returns (average_reward, total_kills).
     """
     exp = marioai.Experiment(task, agent)
     # Speed up simulation for training
-    exp.max_fps = -1 
+    exp.max_fps = max_fps
     
     total_reward = 0
     total_kills = 0
