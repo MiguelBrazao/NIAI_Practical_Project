@@ -154,21 +154,28 @@ class Rewards:
         _tmax2_cur  = (self.kills_threshold_fireball if has_fireball_cur  else self.kills_threshold_stomp) ** 2
         _tmax2_last = (self.kills_threshold_fireball if has_fireball_last else self.kills_threshold_stomp) ** 2
 
-        # Enemy is considered "close" for gating purposes based on current observation.
+        # Enemy is considered "close" for gating purposes based on current observation (X only). 
+        # If he goes through an enemy that is close in the current step without killing it, we stop progression 
+        # rewards until he gets a kill or the episode resets, which can help encourage combat rather than just avoidance.
         enemy_is_close = any(
-            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2_cur
+            _tmin2 <= dx ** 2 <= _tmax2_cur
             for dx, dy, *_ in cur_enemies
         )
 
         if cur_count >= last_count:
-            # No kill this step: if enemy is close, stop forward rewards until episode reset.
+            # No kill this step: if enemy is close, stop progression rewards until episode reset or until he gets a 
+            # kill (which means he successfully dealt with the nearby threat rather than just avoiding it and getting 
+            # stopped by it, which can help encourage combat rather than just avoidance). We track Mario's position when 
+            # this happens to be able to apply a terminal reward based on how far he got if he never manages to kill 
+            # that nearby enemy and the episode ends (e.g., due to time running out or dying), which can help 
+            # encourage killing nearby enemies rather than just avoiding them and stopping progression rewards.
             if enemy_is_close:
                 self.mario_position_when_he_doesnt_kill = self.vars_current_obs.get('mario_position')
             return  # no enemies killed this step
 
-        # Check whether any enemy in last step was within the valid kill range
+        # Check whether any enemy in last step was within the valid kill range (X only)
         enemy_was_close = any(
-            _tmin2 <= (dx ** 2 + dy ** 2) <= _tmax2_last
+            _tmin2 <= dx ** 2 <= _tmax2_last
             for dx, dy, *_ in last_enemies
         )
 
