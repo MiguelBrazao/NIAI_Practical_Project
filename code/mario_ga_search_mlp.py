@@ -66,6 +66,7 @@ def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
         print(f"{i+1}: ", rewards[top[i]])
     print(f"Elite Count: {elite_count}")
     if kills is not None:
+        print(f"\nBest Candidate Kills: {kills[np.argmax(rewards)]}")
         print(f"\nTotal Kills: {kills.sum()}")
         print(f"Mean Kills: {kills.mean():.2f}")
         print(f"Max Kills: {kills.max()}")
@@ -227,6 +228,7 @@ def genetic_algorithm(
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         elites = [deepcopy(population[i]) for i in elite_idx]
         elite_rewards_carried = rewards[elite_idx].copy()  # carry forward without re-evaluation
+        elite_kills_carried = kills[elite_idx].copy()  # carry forward without re-evaluation
         best_candidate = deepcopy(population[elite_idx[0]])
         best_candidate_reward = rewards[elite_idx[0]]
 
@@ -260,7 +262,7 @@ def genetic_algorithm(
         population = new_population
         offspring_rewards, offspring_kills = evaluate_population(agent_class, population[elite_count:])
         rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
-        kills = np.concatenate([np.zeros(elite_count, dtype=int), offspring_kills])
+        kills = np.concatenate([elite_kills_carried, offspring_kills])
         debug_evaluate_population(rewards, tournament_k, elite_count, kills)
 
         # Track global best: check both the old elite (carried forward) and the new population's best
