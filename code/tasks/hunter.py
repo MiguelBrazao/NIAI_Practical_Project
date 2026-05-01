@@ -10,7 +10,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
-        self.forward_reward_value = 1.0           # small forward reward to encourage progress but not camping
+        self.forward_reward_value = 1.0             # small forward reward to encourage progress but not camping
         self.kills_reward_value = 100.0             # high kill reward so kills dominate progression
 
 

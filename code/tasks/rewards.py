@@ -26,9 +26,9 @@ class Rewards:
         self.vars_last_obs = None           # to store the last observation variables for comparison with current observation in reward calculations (e.g., to compute movement, coin collection, enemy kills)
         self.reward = 0.0                   # to store the computed reward for the current step, which can be accessed by the task's get_sensors method to return as part of the fitness packet
         self.kill_count = 0                 # diagnostic counter: total enemies killed this episode (reset each episode)      
-        self.use_progression = False         # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
-        self.use_deaths = False            # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
-        self.stop_forward_rewards = False  # when True, forward rewards are paused until a kill happens
+        self.use_progression = False        # to track whether we should check the distance for a terminal reward in get_sensors, which can help ensure we apply the finish line bonus correctly when the finish line is reached (status == 1) and we have a valid distance measurement, while avoiding issues with distance being 0 or None in some edge cases (e.g., if the episode ends due to time running out or other non-finish-line reasons)
+        self.use_deaths = False             # to track whether we should check for death in the current step, which can help prevent multiple death penalties if the agent remains dead for multiple steps without resetting (e.g., due to a bug or edge case in the environment)
+        self.stop_forward_rewards = False   # when True, forward rewards are paused until a kill happens
 
 
     def reset(self):
