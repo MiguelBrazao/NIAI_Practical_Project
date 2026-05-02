@@ -135,8 +135,8 @@ class Rewards:
         last_enemies = getattr(last_obs,    'enemies', []) or []
         cur_enemies  = getattr(current_obs, 'enemies', []) or []
 
-        _STOMP_RANGE_PX  = 32   # horizontal range ahead (~2 tiles)
-        _STOMP_BEHIND_PX = 8    # allow slight overshoot (mario centre just passed enemy)
+        _STOMP_RANGE_PX  = 16   # horizontal range ahead (~1 tile): realistic stomp contact zone
+        _STOMP_BEHIND_PX = 8    # overshoot tolerance: Mario's centre may have just passed the enemy (half a tile behind)
         _MAX_BELOW_PX    = 16   # enemy must be within 1 tile below Mario's centre (stomp landing zone)
 
         # Enemy must be close horizontally (slight overshoot allowed) and at/below Mario
