@@ -107,35 +107,44 @@ class Rewards:
 
     def kills(self, current_obs=None, last_obs=None):
         """
-        Stomp kill detection.
+        Stomp kill detection using enemies list heuristics.
 
-        Three conditions must hold simultaneously on the same frame:
+        Four conditions must all hold simultaneously:
 
-        1. An enemy disappeared from the front zone (dx >= 0 in last frame, gone now).
-        2. Mario just landed (was on_ground=False last frame, on_ground=True this frame).
-        3. At least one enemy in the previous frame was within stomp range horizontally
-           (|dx| <= 48 px ≈ 3 tiles).  Enemies that merely walk out of detection radius
-           are at the far edge of the grid (~176 px away) and cannot satisfy this, which
-           eliminates the main false-positive source (enemy disappears while Mario happens
-           to be landing after jumping over a gap).
+        1. Mario just landed (on_ground False→True).
+        2. A front enemy disappeared (front count dropped).
+        3. At least one front enemy in the previous frame was 
+           within horizontal stomp range (0 <= dx <= 32 px ≈ 2 tiles).
+        4. That same enemy was meaningfully below Mario (dy >= 8 px and 
+           dy <= 32 px). In MarioAI screen coords y increases downward, so 
+           dy>0 means the enemy is visually below Mario — the only stompable 
+           configuration. This filters the main false-positive: an enemy walking 
+           past Mario at the same ground level (dy≈0) while Mario happens to 
+           be jumping.
         """
         if current_obs is None or last_obs is None:
             return
 
-        cur_enemies  = getattr(current_obs, 'enemies', []) or []
+        just_landed = (not getattr(last_obs, 'on_ground', True)
+                       and getattr(current_obs, 'on_ground', False))
+        if not just_landed:
+            return
+
         last_enemies = getattr(last_obs,    'enemies', []) or []
+        cur_enemies  = getattr(current_obs, 'enemies', []) or []
+
+        _STOMP_RANGE_PX = 32   # horizontal range (~2 tiles)
+        _MIN_BELOW_PX   = 8    # enemy must be at least 8 px below Mario's centre
+        _MAX_BELOW_PX   = 32   # enemy can't be more than 32 px below (not a pit enemy)
+
+        # Enemy must be directly ahead, close, and within vertical stomp window
+        stompable = any(0 <= dx <= _STOMP_RANGE_PX and _MIN_BELOW_PX <= dy <= _MAX_BELOW_PX
+                        for dx, dy, t in last_enemies)
+        if not stompable:
+            return
 
         front_last = sum(1 for dx, dy, t in last_enemies if dx >= 0)
         front_cur  = sum(1 for dx, dy, t in cur_enemies  if dx >= 0)
 
-        enemy_left_front = front_cur < front_last
-
-        just_landed = (not getattr(last_obs, 'on_ground', True)
-                       and getattr(current_obs, 'on_ground', False))
-
-        # At least one enemy was close enough to stomp last frame
-        _STOMP_RANGE_PX = 48
-        enemy_in_range = any(abs(dx) <= _STOMP_RANGE_PX for dx, dy, t in last_enemies if dx >= 0)
-
-        if enemy_left_front and just_landed and enemy_in_range:
+        if front_cur < front_last:
             self.kill_count += front_last - front_cur
