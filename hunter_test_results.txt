@@ -53,6 +53,8 @@ Elite Count: 3
 
 Best Candidate Kills: 26
 
+Actually killed 7 (1 + 3 + 4)
+
 ---------------------------------------------
 
 Sigma: 0.8348
@@ -67,24 +69,26 @@ SEED 999
 
 Generation 250/250
 
-Max = 
-Min = 
-Mean = 
-Std = 
-Top 4: 
+Max = 44708.000
+Min = 115.199
+Mean = 6505.220
+Std = 9263.780
+Top 4: [ 0  1  2 93]
 Top 4 rewards:
-1:  
-2: 
-3:  
-4:  
-Elite Count: 
+1:  44708.0
+2:  44708.0
+3:  43708.0
+4:  25741.70928955078
+Elite Count: 3
 
-Best Candidate Kills: 
+Best Candidate Kills: 25
+
+Actually killed: 5 (0 + 1 + 4)
 
 ---------------------------------------------
 
-Sigma: 
-Stagnation: 
+Sigma: 0.5529
+Stagnation: 10/25 (10.0% of 250 gens)
 
 ---------------------------------------------
 ---------------------------------------------

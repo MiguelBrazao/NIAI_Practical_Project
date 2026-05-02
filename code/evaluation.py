@@ -6,10 +6,9 @@ from tasks import MoveForwardTask, HunterTask
 import numpy as np
 import os
 
-# Variable that configures the number of parallel processes
+# Variable that configures 
+# the number of parallel processes
 N_PROCESSES = 5
-# Task Definition
-# TASK_TO_SOLVE = MoveForwardTask#HunterTask
 
 # Task selection via environment variable: 'move_forward' or 'hunter'
 _task_env = os.environ.get('TASK', 'hunter').lower()
@@ -19,14 +18,16 @@ TASK_TO_SOLVE = MoveForwardTask if _task_env == 'move_forward' else HunterTask
 _vis_env = os.environ.get('GRAPHICS', '1').lower()
 VISUALIZE = False if _vis_env in ('0', 'false', 'no') else True
 
-
 port_list = [4242 + i for i in range(N_PROCESSES)]
+
+
 def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     """
     Evaluates the agent on the task for a given number of episodes.
     Returns (average_reward, total_kills).
     """
     exp = marioai.Experiment(task, agent)
+
     # Speed up simulation for training
     exp.max_fps = max_fps
     
@@ -36,21 +37,22 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     for _ in range(episodes):
         episode_reward = 0
         task.level_difficulty = 0
+
         # Try up to 3 levels of increasing difficulty
         for _ in range(3):
             rewards = exp.doEpisodes(1)
             episode_reward += task.cum_reward
-            total_kills += task.kill_count  # kill_count resets each doEpisodes via task.reset()
+
+            # kill_count resets each doEpisodes via task.reset()
+            total_kills += task.kill_count  
             
             if task.status == 1: # WIN
                 task.level_difficulty += 1
             else:
                 break
         
-                
         total_reward += episode_reward
         
-    
     return total_reward / episodes, total_kills
 
 
@@ -105,6 +107,7 @@ def evaluate_individual(ind_info):
         kills = 0
         
     return reward, kills
+
 
 def evaluate(agent_class, ind_info):
     global worker_agent, worker_task

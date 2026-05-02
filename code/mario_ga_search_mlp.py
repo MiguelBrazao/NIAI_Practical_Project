@@ -23,6 +23,10 @@ def timer_context(label):
 
 
 def make_evolution_plot(best, mean, save=False):
+    """
+    Constructs a plot of the best and mean rewards over generations. 
+    The plot is updated in real-time during the evolution process.
+    """
     mode = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
     plt.plot(best, label='Best Reward')
     plt.plot(mean, label='Mean Reward')
@@ -38,23 +42,62 @@ def make_evolution_plot(best, mean, save=False):
     
 
 def tournament(population, tournament_k, rewards, replace=False):
-    eligible = np.where(np.isfinite(rewards))[0] # only consider individuals with valid rewards for tournament selection (exclude -inf from reinitialized individuals)
-    pool = eligible if len(eligible) >= 2 else np.arange(len(population)) # if not enough eligible individuals, fallback to entire population to avoid errors
-    idx = np.random.choice(pool, min(tournament_k, len(pool)), replace=replace) # select tournament_k individuals from the eligible pool without replacement (or with replacement if not enough eligible)
-    return deepcopy(population[idx[np.argmax(rewards[idx])]]) # return a copy of the best individual from the tournament
+    """ 
+    Performs tournament selection on the population.
+
+    Args:
+        population (list): The current population of individuals.
+        tournament_k (int): The number of individuals to participate in each tournament.
+        rewards (np.ndarray): The rewards associated with each individual.
+        replace (bool): Whether to allow replacement in the tournament selection.
+
+    Returns:
+        The best individual from the tournament.
+    """
+    # only consider individuals with valid rewards for tournament 
+    # selection (exclude -inf from reinitialized individuals)
+    eligible = np.where(np.isfinite(rewards))[0] 
+
+    # if not enough eligible individuals, fallback
+    # to entire population to avoid errors
+    pool = eligible if len(eligible) >= 2 else np.arange(len(population)) 
+
+    # select tournament_k individuals from the eligible pool without 
+    # replacement (or with replacement if not enough eligible)
+    idx = np.random.choice(pool, min(tournament_k, len(pool)), replace=replace)
+
+    # return a copy of the best individual from the tournament 
+    return deepcopy(population[idx[np.argmax(rewards[idx])]]) 
 
 
 def save_best_agent(params, reward):
+    """
+    Saves the best agent's parameters to a file.
+
+    Args:
+        params (np.ndarray): The parameter vector of the agent.
+        reward (float): The reward achieved by the agent.
+    """
+
     Path("data/mlp_best_agents").mkdir(parents=True, exist_ok=True)
+    
+    # update mlp weights first
     inst = MLPAgent()
-    inst.set_param_vector(params) # update mlp weights first
+    inst.set_param_vector(params) 
+
     mode = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
     with open(f'data/mlp_best_agents/ga_{mode}_seed_{sys.argv[1]}_{reward:.3f}.pkl', 'wb') as f:
-        pkl.dump(inst.get_param_vector(), f) # save the actual agent param vector
+        # save the actual agent param vector
+        pkl.dump(inst.get_param_vector(), f)
+
     print(f"\nSaved new best agent with reward {reward:.3f}")
 
 
 def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
+    """
+    Prints debug information about the population's 
+    rewards, including statistics and top performers.
+    """
     top = np.argsort(rewards)[::-1][:tournament_k]
     print("\nMax = {:.3f}".format(rewards.max()))
     print("Min = {:.3f}".format(rewards.min()))
@@ -165,10 +208,15 @@ def genetic_algorithm(
         - Gaussian mutation
         - Elitism (survivor selection)
     """
-    agent_class = MLPAgent  # keep class for evaluate_population (used by workers)
+    # keep class for
+    # evaluate_population 
+    # (used by workers)
+    agent_class = MLPAgent  
 
     task_label = 'HUNTER' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'MOVE FORWARD'
-    stagnation_limit = max(1, round(stagnation_ratio * generations))  # convert ratio to absolute generation count
+
+    # convert ratio to absolute generation count
+    stagnation_limit = max(1, round(stagnation_ratio * generations))  
 
     print(f"\n---------------------------------------------")
     print(f"\n{task_label} GA Search with MLP Agent")
@@ -193,21 +241,53 @@ def genetic_algorithm(
     print(f"\nGeneration 1/{generations}")
 
     # Initialize population with random parameter vectors    
-    num_params = len(MLPAgent().get_param_vector())  # get number of parameters from a fresh agent instance
-    population = [np.random.randn(num_params) for _ in range(population_size)] # initialize population with random parameter vectors
-    rewards, kills = evaluate_population(agent_class, population) # Evaluate all individuals in the population and get their rewards
-    best_params = deepcopy(population[np.argmax(rewards)]) # Keep track of the best parameters found so far
-    best_reward = rewards.max() # Keep track of the best reward found so far
-    reference_std = rewards.std()  # baseline std from fully random generation 1, used to normalise adaptive restart ratio
-    
-    debug_evaluate_population(rewards, tournament_k, elite_count, kills) # Print diagnostics about the rewards distribution in the initial population
-    save_best_agent(best_params, best_reward) # Save the best agent from the initial population
-    new_best_found = True # Flag to track if a new best agent was found in the current generation (used for saving)
-    best_rewards = [best_reward] # Track the best reward of each generation for plotting
-    mean_rewards = [rewards.mean()] # Track the mean reward of each generation for plotting
+    # get number of parameters from a fresh agent instance
+    num_params = len(MLPAgent().get_param_vector())  
 
-    stagnation_count = 0   # generations since last improvement
-    current_sigma = sigma  # sigma decays each generation toward sigma_min
+    # initialize population with random parameter vectors
+    population = [np.random.randn(num_params) for _ in range(population_size)]
+
+    # Evaluate all individuals in the population and get their rewards 
+    rewards, kills = evaluate_population(agent_class, population)
+
+    # Keep track of the best parameters found so far 
+    best_params = deepcopy(population[np.argmax(rewards)]) 
+
+    # Keep track of the best 
+    # reward found so far
+    best_reward = rewards.max() 
+
+    # baseline std from fully random 
+    # generation 1, used to normalise 
+    # adaptive restart ratio
+    reference_std = rewards.std()  
+    
+    # Print diagnostics about the rewards distribution in the initial population
+    debug_evaluate_population(rewards, tournament_k, elite_count, kills) 
+
+    # Save the best agent from the initial population
+    save_best_agent(best_params, best_reward) 
+
+    # Flag to track if a new best agent was found 
+    # in the current generation (used for saving)
+    new_best_found = True 
+
+    # Track the best reward of 
+    # each generation for plotting
+    best_rewards = [best_reward] 
+
+    # Track the mean reward of 
+    # each generation for plotting
+    mean_rewards = [rewards.mean()] 
+
+    # generations since 
+    # last improvement
+    stagnation_count = 0   
+
+    # sigma decays each 
+    # generation toward 
+    # sigma_min
+    current_sigma = sigma  
     
     # Sigma decay + stagnation restart
     current_sigma, stagnation_count, population, rewards = update_sigma_stagnation(
@@ -226,12 +306,13 @@ def genetic_algorithm(
         # Select elites from current population (based on current rewards)
         elite_idx = np.argsort(rewards)[::-1][:elite_count]
         elites = [deepcopy(population[i]) for i in elite_idx]
-        elite_rewards_carried = rewards[elite_idx].copy()  # carry forward without re-evaluation
-        elite_kills_carried = kills[elite_idx].copy()  # carry forward without re-evaluation
+        elite_rewards_carried = rewards[elite_idx].copy() 
+        elite_kills_carried = kills[elite_idx].copy() 
         best_candidate = deepcopy(population[elite_idx[0]])
         best_candidate_reward = rewards[elite_idx[0]]
 
-        # Build new population by reproduction (parents sampled w.r.t current rewards)
+        # Build new population by reproduction 
+        # (parents sampled w.r.t current rewards)
         new_population = []
         while len(new_population) < population_size:
             # Tournament selection
@@ -240,7 +321,8 @@ def genetic_algorithm(
 
             # Uniform Crossover
             if np.random.rand() < crossover_rate:
-                # per-gene probability to take gene from parent1 (default 0.5 = uniform crossover)
+                # per-gene probability to take gene 
+                # from parent1 (default 0.5 = uniform crossover)
                 mask = np.random.rand(num_params) < crossover_mask_prob
                 child = np.where(mask, parent1, parent2)
             else:
@@ -257,14 +339,16 @@ def genetic_algorithm(
         for i, e in enumerate(elites):
             new_population[i] = deepcopy(e)
 
-        # Advance to new population; evaluate only offspring, carry elite rewards forward
+        # Advance to new population; evaluate only 
+        # offspring, carry elite rewards forward
         population = new_population
         offspring_rewards, offspring_kills = evaluate_population(agent_class, population[elite_count:])
         rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
         kills = np.concatenate([elite_kills_carried, offspring_kills])
         debug_evaluate_population(rewards, tournament_k, elite_count, kills)
 
-        # Track global best: check both the old elite (carried forward) and the new population's best
+        # Track global best: check both the old elite 
+        # (carried forward) and the new population's best
         new_pop_best_idx = np.argmax(rewards)
         new_pop_best_reward = rewards[new_pop_best_idx]
         if best_candidate_reward > best_reward:
@@ -276,7 +360,8 @@ def genetic_algorithm(
             best_params = deepcopy(population[new_pop_best_idx])
             new_best_found = True
 
-        # Save the best params only AFTER weights have been applied to an agent (and after offspring generation)
+        # Save the best params only AFTER weights have been 
+        # applied to an agent (and after offspring generation)
         if new_best_found:
             save_best_agent(best_params, best_reward)
 
