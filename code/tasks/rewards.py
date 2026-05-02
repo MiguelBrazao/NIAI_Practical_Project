@@ -109,17 +109,15 @@ class Rewards:
         """
         Stomp kill detection.
 
-        A stomp kill has two simultaneous signatures:
-          1. An enemy disappears from the front zone (dx >= 0 in the enemies list).
-          2. Mario just landed — was in the air last frame (on_ground=False) and is
-             on the ground this frame (on_ground=True).
+        Three conditions must hold simultaneously on the same frame:
 
-        This guards against the main false-positive source: enemies walking out of the
-        detection radius (which would look like disappearance but happens while Mario is
-        on the ground running, not mid-stomp).
-
-        Note: the enemies list does not reliably track enemies behind Mario, so
-        behind-zone counting is not used.
+        1. An enemy disappeared from the front zone (dx >= 0 in last frame, gone now).
+        2. Mario just landed (was on_ground=False last frame, on_ground=True this frame).
+        3. At least one enemy in the previous frame was within stomp range horizontally
+           (|dx| <= 48 px ≈ 3 tiles).  Enemies that merely walk out of detection radius
+           are at the far edge of the grid (~176 px away) and cannot satisfy this, which
+           eliminates the main false-positive source (enemy disappears while Mario happens
+           to be landing after jumping over a gap).
         """
         if current_obs is None or last_obs is None:
             return
@@ -132,9 +130,12 @@ class Rewards:
 
         enemy_left_front = front_cur < front_last
 
-        # Stomp signature: Mario was in the air and just touched the ground
         just_landed = (not getattr(last_obs, 'on_ground', True)
                        and getattr(current_obs, 'on_ground', False))
 
-        if enemy_left_front and just_landed:
+        # At least one enemy was close enough to stomp last frame
+        _STOMP_RANGE_PX = 48
+        enemy_in_range = any(abs(dx) <= _STOMP_RANGE_PX for dx, dy, t in last_enemies if dx >= 0)
+
+        if enemy_left_front and just_landed and enemy_in_range:
             self.kill_count += front_last - front_cur
