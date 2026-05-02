@@ -113,14 +113,16 @@ class Rewards:
 
         1. Mario just landed (on_ground False→True).
         2. A front enemy disappeared (front count dropped).
-        3. At least one front enemy in the previous frame was 
-           within horizontal stomp range (0 <= dx <= 32 px ≈ 2 tiles).
-        4. That same enemy was meaningfully below Mario (dy >= 8 px and 
-           dy <= 32 px). In MarioAI screen coords y increases downward, so 
-           dy>0 means the enemy is visually below Mario — the only stompable 
-           configuration. This filters the main false-positive: an enemy walking 
-           past Mario at the same ground level (dy≈0) while Mario happens to 
-           be jumping.
+        3. At least one enemy in the previous frame was within horizontal
+           stomp range (-8 <= dx <= 32 px). Negative dx tolerates a slight
+           overshoot where Mario's centre has just passed over the enemy.
+        4. That same enemy was at or below Mario (dy >= 0 px and dy <= 32 px).
+           In MarioAI screen coords y increases downward, so dy >= 0 means
+           the enemy is at or below Mario's centre — the stompable
+           configuration. The former _MIN_BELOW_PX = 8 guard was causing
+           false negatives on quick low-hop stomps where dy was only a few
+           pixels; since just_landed + count-drop already constrain the
+           detection well, dy >= 0 is safe here.
         """
         if current_obs is None or last_obs is None:
             return
@@ -133,12 +135,12 @@ class Rewards:
         last_enemies = getattr(last_obs,    'enemies', []) or []
         cur_enemies  = getattr(current_obs, 'enemies', []) or []
 
-        _STOMP_RANGE_PX = 32   # horizontal range (~2 tiles)
-        _MIN_BELOW_PX   = 8    # enemy must be at least 8 px below Mario's centre
-        _MAX_BELOW_PX   = 32   # enemy can't be more than 32 px below (not a pit enemy)
+        _STOMP_RANGE_PX  = 32   # horizontal range ahead (~2 tiles)
+        _STOMP_BEHIND_PX = 8    # allow slight overshoot (mario centre just passed enemy)
+        _MAX_BELOW_PX    = 16   # enemy must be within 1 tile below Mario's centre (stomp landing zone)
 
-        # Enemy must be directly ahead, close, and within vertical stomp window
-        stompable = any(0 <= dx <= _STOMP_RANGE_PX and _MIN_BELOW_PX <= dy <= _MAX_BELOW_PX
+        # Enemy must be close horizontally (slight overshoot allowed) and at/below Mario
+        stompable = any(-_STOMP_BEHIND_PX <= dx <= _STOMP_RANGE_PX and 0 <= dy <= _MAX_BELOW_PX
                         for dx, dy, t in last_enemies)
         if not stompable:
             return
