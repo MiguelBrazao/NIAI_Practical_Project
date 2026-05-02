@@ -107,17 +107,19 @@ class Rewards:
 
     def kills(self, current_obs=None, last_obs=None):
         """
-        Kill detection via the enemies list.
+        Stomp kill detection.
 
-        level_scene tile values (range -11 to 42) are terrain tile types and do NOT
-        represent enemy positions — enemies are tracked separately in the enemies list
-        as (dx, dy, type) tuples where dx is in pixels relative to Mario (positive = ahead).
+        A stomp kill has two simultaneous signatures:
+          1. An enemy disappears from the front zone (dx >= 0 in the enemies list).
+          2. Mario just landed — was in the air last frame (on_ground=False) and is
+             on the ground this frame (on_ground=True).
 
-        Front zone : dx >= 0  (at or ahead of Mario)
-        Behind zone: dx <  0  (already passed)
+        This guards against the main false-positive source: enemies walking out of the
+        detection radius (which would look like disappearance but happens while Mario is
+        on the ground running, not mid-stomp).
 
-        KILL: front count dropped AND behind count did NOT rise → an enemy disappeared
-        from in front of Mario without going behind him → kill_count is incremented.
+        Note: the enemies list does not reliably track enemies behind Mario, so
+        behind-zone counting is not used.
         """
         if current_obs is None or last_obs is None:
             return
@@ -125,14 +127,14 @@ class Rewards:
         cur_enemies  = getattr(current_obs, 'enemies', []) or []
         last_enemies = getattr(last_obs,    'enemies', []) or []
 
-        front_last  = sum(1 for dx, dy, t in last_enemies if dx >= 0)
-        front_cur   = sum(1 for dx, dy, t in cur_enemies  if dx >= 0)
-        behind_last = sum(1 for dx, dy, t in last_enemies if dx <  0)
-        behind_cur  = sum(1 for dx, dy, t in cur_enemies  if dx <  0)
+        front_last = sum(1 for dx, dy, t in last_enemies if dx >= 0)
+        front_cur  = sum(1 for dx, dy, t in cur_enemies  if dx >= 0)
 
-        enemy_left_front   = front_cur < front_last
-        enemy_slipped_past = enemy_left_front and behind_cur > behind_last
-        confirmed_kill     = enemy_left_front and not enemy_slipped_past
+        enemy_left_front = front_cur < front_last
 
-        if confirmed_kill:
+        # Stomp signature: Mario was in the air and just touched the ground
+        just_landed = (not getattr(last_obs, 'on_ground', True)
+                       and getattr(current_obs, 'on_ground', False))
+
+        if enemy_left_front and just_landed:
             self.kill_count += front_last - front_cur
