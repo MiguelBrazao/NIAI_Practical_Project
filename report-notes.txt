@@ -1,0 +1,75 @@
+INSTRUÇÕES
+
+Dar o enunciado ao chat gpt, para lhe explicar o projeto e o que é esperado que analise e que reporte, pedindo-lhe para criar placeholders para os resultados dos testes para as 5 seeds de cada tarefa; 
+Dar lhe os ficheiros originais do codigo mas nao todos, apenas dos que editamos - mlp_agent.py, hunter.py, move_forward.py, evaluate_best_agent.py, evaluation.py - para que ele saiba de onde partimos;
+Dar lhe os ficheiros finais e os ficheiros que criamos -- rewards.py, mario_ga_search_gp.py -- para que ele saiba o que mudamos e desenvolvemos de raiz;
+Dar lhe os resultados finais de cada seed (presentes na raiz da pasta do projeto)
+Dar as explicações contidas neste ficheiro para lhe dar mais contexto;
+Pedir ao para explicar primeiro o processo para edição do mlp, da criação das recompensas e da criação no algoritmo genetico.
+
+---
+---
+---
+
+NOTAS:
+
+Para as notas seguintes, pede ao GPT para desenvolver e confirmar o raciocinio, de modo a alinhar o que está aqui explicado com o intuito do projeto, da cadeira e do código que lhe estamos a fornecer.
+
+---
+
+MLP: 
+
+Para os inputs da rede neuronal, começamos por reduzir o tamanho da cena que lhe enviamos, considerando apenas uma grelha 7x7 que olha para a frente do mario. 
+
+Optamos por deixar o mario no centro da primeira coluna da grelha, para que possa promover a aprendizagem de alterações no terreno, ver inimigos em baixo ou em cima, etc, ajudando na redução de dimensionalidade e, assim, reduzimos a dimensao das matrizes de peso do MLP, ajudando na redução do espaço de procura para o algoritmo genetico.
+
+Depois, adicionamos aos inputs a enviar para o MLP a informação sobre 3 inimigos existentes e as suas distancias ao mario. 
+
+Como temos gamas de valores muito dispares que podem enviesar os resultados e pesos da rede neuronal, normalizamos todos os inputs de modo a que fiquem na gama [-1, 1], o ideal para funções de ativação ReLU. 
+
+Para a normalização da posição do mario, descobrimos que cada nivel tem 200 tiles, com 16px por tile e utilizamos esses valores para os calculos.
+
+Alteramos a rede neuronal para que as suas camadas internas tenham uma redução de dimensionalidade ainda maior, passando a ter uma camada interna que reduz a entrada para 16 e posteriormente para 8, antes de criar o output final com os 5 comandos para o controlo do mario. 
+
+# Input space: 7x7 forward window (49) + mario pos (2) + flags (2) + 3 closest enemies (dx,dy) (6) = 59
+# Network: 59 → 16 → 8 → 5 = 1085 parameters
+
+Por fim, removemos a ativação sigmoide e optamos por usar uma ativação direta com um threshold de 0.0 sobre os valores gerados pelas camadas ReLU para promover o uso mais puro dos outputs gerados pelos pesos encontrados pelo algoritmo genetico.
+
+---
+
+ALG GENETICO:
+
+para o algoritmo genetico, ao serem feitos testes, identificamos pontos de estagnação que tentamos evitar com uso de sigma e taxas de crossover/mutação altas, mas que resultavam noutros problemas quando eram muito fortes.
+
+ Acabamos por desenvolver um mecanismo adaptativo que identifica quando começa a existir estagnação na evolução, para que ao fim de N ciclos se possa fazer reset a parte da população. Este mecanismo evoluiu para que o sigma se torne adaptativo: ao verificar que existe convergencia, vai reduzindo o sigma, mas se houver estagnação, aumenta-o de novo para promover exploração do espaço de hipoteses. 
+
+Depois, surgiu-nos a ideia de que, ao reiniciar a população pudessemos analisar o desvio padrao entre as recompensas geradas na ultima geração e assim influenciar a quantidade de população a que é feito o reset e o valor de sigma a utilizar: quanto maior o desvio padrão, maior a diversidade da população e menor a população a gerar do zero, assim como menor o sigma; se o desvio for baixo, aí sim aumentamos esses valores. Desta forma, conseguimos ter um processo de aprendizegem que aprende com os resultados obtidos e promove exploração.
+
+---
+
+FIT FUNCTIONS:
+
+MOVE FORWARD:
+sempre que davamos penalização, fosse directamente (subtraindo valor) ou indirectamente (parar de somar recompensa), o agente aprendia formas de evitar o comportamento que estavamos a tentar que fosse desejavel;
+
+tentamos fazer analise de ambiente e dar penalizações por ações inesperadas, mas isso limitou o espaço de procura ao ponto do agente até deixar de saltar. 
+
+como estas ações eram executadas em cada passo de episodio, as somas tornavam-se demasiado densas e ruidosas. mesmo tentando somar o avanço passo a passo mostrou-se uma má forma de incentivar o avanço pelo nivel.
+
+a melhor forma de resolver, para incentivar a terminar o nivel e assim permitir um espaço de procura maior, foi de usar a distancia percorrida por episodio como uma recompensa directa, adicionada no final do episodio, ajudando a que exista maior procura no espaço de hipoteses (cada episodio nao é influenciado por recompensas em cada passo, mas sim pela recompensa final, depois de exploradas as hipoteses). Para distinguir entre niveis de dificuldade e ajudar a que o gradiante de recompensas tivesse mais impacto em niveis mais dificeis, multiplicamos essa distancia percorrida pelo nivel de dificuldade (com um parametro de racio para que pudessemo configurar o seu peso)
+
+reward=distance×(1+difficulty)×ratio
+
+HUNTER:
+para as kills, começamos por tentar reconhecer quando o agente estava num local onde pudesse matar (perto de inimigo, cruzar-se com inimigo) e dar recompensa se o fizesse, ou penalização se nao o fizesse. mais uma vez, caimos na falacia de inserir recompensas muito densas, o que tornou o gradiante ruidoso e diminuiu a procura, fazendo com q o agente evitasse esses estados. Para o evitar, tentamos também ainda basear a pesquisa puramente em distancia, mas bloqueando a contagem de progresso em distancia quando este nao matasse (registando a posição do mario como a distancia total, quando este se cruzava com um inimigo q nao matasse), mas também  assim acabou por resultar em estados em que os melhores agentes procuravam evitar inimigos.
+
+finalmente, para conseguirmos um gradiante que nao só incentivasse caça de inimigos mas também progresso pelos niveis, baseamo-nos na forma do progresso inicial, adicionando um fator multiplicativo que adiciona à recompensa final o numero de mortes de inimigos multiplicado por um factor que aumente o peso do mesmo:
+
+reward=distance×(1+difficulty)×ratio×(1+kill_count×kill_multiplier)
+
+Restou-nos então descobrir uma forma de registar correctamente quando o mario mata um inimigo. Tentamos registar atraves de distancia global aos inimigos, para podermos registar nao só "stomps" como "fireballs" lançadas pelo mario, mas depois de testes extensivos, esta forma de pesquisa nao só se evidenciou como registando imensos falsos positivos (por exemplo, inimigos que saiam do ecrã) como nao registamos uma unica vez um episodio em que o mario lançasse qualquer projetil.
+
+Decidimos por isso, simplificar esta analise e reduzir a procura de hipoteses para inimigos que o mario mate com stomp, baseando-nos nao só no observado em horas de teste, mas também incentivando a que mario se foque em matar inimigos dessa forma.
+
+Para tal, analisamos o array de inimigos, verificamos se no momento anterior e atual a contagem difere (se um inimigo morrer, desaparece) e se nao passou para tras do mario (distancia negativa).
