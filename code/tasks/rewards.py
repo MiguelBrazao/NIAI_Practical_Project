@@ -107,46 +107,46 @@ class Rewards:
 
     def kills(self, current_obs=None, last_obs=None):
         """
-        Stomp kill detection using enemies list heuristics.
+        Kill detection via level_scene grid.
 
-        Four conditions must all hold simultaneously:
+        Stompable enemy cells (Goomba 2/3, Koopa 4-7, Shell 13) appear in
+        the 22x22 level_scene grid. An enemy that walks off the visible
+        window also disappears from the grid, so a plain count-drop would
+        produce false positives.
 
-        1. Mario just landed (on_ground False→True).
-        2. A front enemy disappeared (front count dropped).
-        3. At least one enemy in the previous frame was within horizontal
-           stomp range (-8 <= dx <= 32 px). Negative dx tolerates a slight
-           overshoot where Mario's centre has just passed over the enemy.
-        4. That same enemy was at or below Mario (dy >= 0 px and dy <= 32 px).
-           In MarioAI screen coords y increases downward, so dy >= 0 means
-           the enemy is at or below Mario's centre — the stompable
-           configuration. The former _MIN_BELOW_PX = 8 guard was causing
-           false negatives on quick low-hop stomps where dy was only a few
-           pixels; since just_landed + count-drop already constrain the
-           detection well, dy >= 0 is safe here.
+        Guard: a kill is only credited when Mario just landed
+        (on_ground False->True) AND the stompable count in the grid dropped.
+        Enemies that walk off screen don't cause a landing event, so they
+        are correctly ignored.
+
+        The full grid is counted (not just a window around Mario) so that
+        enemies anywhere in the visible scene are tracked.
         """
         if current_obs is None or last_obs is None:
             return
 
+        last_scene = getattr(last_obs,    'level_scene', None)
+        cur_scene  = getattr(current_obs, 'level_scene', None)
+        if last_scene is None or cur_scene is None:
+            return
+
+        STOMPABLE = {2, 3, 4, 5, 6, 7, 13}
+
+        def count_stompable(scene):
+            return int(sum((scene == v).sum() for v in STOMPABLE))
+
+        prev_n = count_stompable(last_scene)
+        curr_n = count_stompable(cur_scene)
+
+        # DEBUG: print every frame where enemy cells are visible
+        if prev_n > 0 or curr_n > 0:
+            just_landed = (not getattr(last_obs, 'on_ground', True)
+                           and getattr(current_obs, 'on_ground', False))
+            print(f"[KILLS DEBUG] enemy cells: {prev_n} -> {curr_n}  "
+                  f"just_landed={just_landed}  kill_count={self.kill_count}")
+
         just_landed = (not getattr(last_obs, 'on_ground', True)
                        and getattr(current_obs, 'on_ground', False))
-        if not just_landed:
-            return
-
-        last_enemies = getattr(last_obs,    'enemies', []) or []
-        cur_enemies  = getattr(current_obs, 'enemies', []) or []
-
-        _STOMP_RANGE_PX  = 16   # horizontal range ahead (~1 tile): realistic stomp contact zone
-        _STOMP_BEHIND_PX = 8    # overshoot tolerance: Mario's centre may have just passed the enemy (half a tile behind)
-        _MAX_BELOW_PX    = 16   # enemy must be within 1 tile below Mario's centre (stomp landing zone)
-
-        # Enemy must be close horizontally (slight overshoot allowed) and at/below Mario
-        stompable = any(-_STOMP_BEHIND_PX <= dx <= _STOMP_RANGE_PX and 0 <= dy <= _MAX_BELOW_PX
-                        for dx, dy, t in last_enemies)
-        if not stompable:
-            return
-
-        front_last = sum(1 for dx, dy, t in last_enemies if dx >= 0)
-        front_cur  = sum(1 for dx, dy, t in cur_enemies  if dx >= 0)
-
-        if front_cur < front_last:
-            self.kill_count += front_last - front_cur
+        if just_landed and curr_n < prev_n:
+            self.kill_count += prev_n - curr_n
+            print(f"[KILLS DEBUG] KILL REGISTERED kill_count={self.kill_count}")
