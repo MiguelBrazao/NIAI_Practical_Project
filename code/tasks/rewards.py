@@ -1,10 +1,4 @@
 class Rewards:
-    # includes enemy_obstacle (20) to catch all enemy encodings, 
-    # which is important for kill/slip-through detection in kills()
-    _ENEMY_TILE_VALUES = frozenset({2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 20})  
-
-    # Mario is always at the centre of the 22×22 level_scene grid (row 11, col 11)
-    _MARIO_TILE = (11, 11)                                                      
 
     def __init__(
         self,
@@ -113,58 +107,32 @@ class Rewards:
 
     def kills(self, current_obs=None, last_obs=None):
         """
-        Kill detection via level_scene zone counting.
+        Kill detection via the enemies list.
 
-        The scene is divided into two zones relative to Mario's centre (col 11):
-          front zone : cols >= MC  (ahead of Mario, including directly under him)
-          behind zone: cols <  MC  (already passed)
+        level_scene tile values (range -11 to 42) are terrain tile types and do NOT
+        represent enemy positions — enemies are tracked separately in the enemies list
+        as (dx, dy, type) tuples where dx is in pixels relative to Mario (positive = ahead).
 
-        Detection uses _ENEMY_TILE_VALUES (not just stompable) to catch all enemy
-        encodings, including enemy_obstacle (20), which would otherwise be missed.
-        The enemies list from the server is NOT used here — it is capped at ~3
-        entries and drops enemies that have passed behind Mario.
+        Front zone : dx >= 0  (at or ahead of Mario)
+        Behind zone: dx <  0  (already passed)
 
-        KILL: the front-zone count dropped AND the behind-zone count did NOT rise
-        → an enemy disappeared from the front zone without going behind Mario.
-        → kill_count is incremented; a flat kill bonus is applied at the terminal step.
+        KILL: front count dropped AND behind count did NOT rise → an enemy disappeared
+        from in front of Mario without going behind him → kill_count is incremented.
         """
         if current_obs is None or last_obs is None:
             return
-        
-        vars_current_obs = vars(current_obs) if current_obs is not None else None
-        vars_last_obs = vars(last_obs) if last_obs is not None else None
 
-        last_scene = vars_last_obs.get('level_scene')
-        cur_scene  = vars_current_obs.get('level_scene')
-        if last_scene is None or cur_scene is None:
-            return
+        cur_enemies  = getattr(current_obs, 'enemies', []) or []
+        last_enemies = getattr(last_obs,    'enemies', []) or []
 
-        # Mario always at col 11
-        _, MC = self._MARIO_TILE  
+        front_last  = sum(1 for dx, dy, t in last_enemies if dx >= 0)
+        front_cur   = sum(1 for dx, dy, t in cur_enemies  if dx >= 0)
+        behind_last = sum(1 for dx, dy, t in last_enemies if dx <  0)
+        behind_cur  = sum(1 for dx, dy, t in cur_enemies  if dx <  0)
 
-        def _zone(scene, col_start, col_end):
-            """
-            Counts the number of enemy tiles in the specified zone of the level_scene.
-            The zone is defined by the column range [col_start, col_end) across all rows
-            """
-            return sum(
-                1
-                for r in range(22)
-                for c in range(col_start, col_end)
-                if int(scene[r, c]) in self._ENEMY_TILE_VALUES
-            )
-
-        # Count enemies in front and behind 
-        # zones for both last and current scenes
-        front_last  = _zone(last_scene, MC, 22)
-        front_cur   = _zone(cur_scene,  MC, 22)
-        behind_last = _zone(last_scene, 0,  MC)
-        behind_cur  = _zone(cur_scene,  0,  MC)
-
-        # enemy(s) left the front zone without appearing behind Mario → killed
-        enemy_left_front = front_cur < front_last
+        enemy_left_front   = front_cur < front_last
         enemy_slipped_past = enemy_left_front and behind_cur > behind_last
-        confirmed_kill = enemy_left_front and not enemy_slipped_past
+        confirmed_kill     = enemy_left_front and not enemy_slipped_past
 
         if confirmed_kill:
             self.kill_count += front_last - front_cur
