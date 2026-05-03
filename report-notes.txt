@@ -72,41 +72,49 @@ Restou-nos então descobrir uma forma de registar correctamente quando o mario m
 
 Decidimos por isso, simplificar esta analise e reduzir a procura de hipoteses para inimigos que o mario mate com stomp, baseando-nos nao só no observado em horas de teste, mas também incentivando a que mario se foque em matar inimigos dessa forma.
 
-Para tal, fazemos deteção híbrida de mortes, usando tanto tuplos de inimigos como contagens de level_scene:
+Para tal, 
 
-    Método por tuplos (preferido quando a telemetria por tuplos está disponível):
-        1) Extrair inimigos pisáveis das observações anterior/atual como
-           (tipo, x, y), em coordenadas do mundo.
-        2) Associar os inimigos do frame anterior aos do frame atual pelo mesmo
-           tipo e pela menor deslocação 2D, dentro de MATCH_RADIUS (42 unidades).
-        3) Os inimigos do frame anterior sem correspondência são considerados
-           “desaparecidos” neste frame.
-        4) Manter apenas os inimigos desaparecidos que estavam na zona de pisão
-           em redor do Mario em last_obs (|dx| <= 22, 0 <= dy <= 52).
-        5) Confirmar apenas se a contagem global de inimigos pisáveis na grelha
-           também diminuir no mesmo frame; as mortes atribuídas são
-           min(tuple_disappeared, grid_drop).
+        fazemos deteção híbrida de mortes, usando tanto tuplos de inimigos como contagens de level_scene.
+        Incrementa self.kill_count, que acumula ao longo de todos os sub-episódios
+        (nível 0→1→2) dentro de um único episódio externo. Isto significa que as
+        mortes obtidas em níveis anteriores continuam a inflacionar a recompensa
+        terminal nos níveis seguintes. kill_count é reiniciado explicitamente em
+        evaluate_agent antes do ciclo interno dos níveis, e não dentro de
+        task.reset().
 
-    Recurso por grelha (apenas quando a telemetria por tuplos está ausente):
-        Se os tuplos de inimigos não estiverem disponíveis em ambas as
-        observações, registar mortes a partir de uma diminuição global das
-        células pisáveis, condicionada pela flag persistente de proximidade
-        (enemy_was_recently_close), que é ativada quando um inimigo pisável está
-        na janela local da grelha abaixo do Mario (linhas 12-13, colunas 10-12).
+        Método por tuplos (preferido quando a telemetria por tuplos está disponível):
+                1) Extrair inimigos pisáveis das observações anterior/atual como
+                (tipo, x, y), em coordenadas do mundo.
+                2) Associar os inimigos do frame anterior aos do frame atual pelo mesmo
+                tipo e pela menor deslocação 2D, dentro de MATCH_RADIUS (42 unidades).
+                3) Os inimigos do frame anterior sem correspondência são considerados
+                “desaparecidos” neste frame.
+                4) Manter apenas os inimigos desaparecidos que estavam na zona de pisão
+                em redor do Mario em last_obs (|dx| <= 22, 0 <= dy <= 52).
+                5) Confirmar apenas se a contagem global de inimigos pisáveis na grelha
+                também diminuir no mesmo frame; as mortes atribuídas são
+                min(tuple_disappeared, grid_drop).
 
-    Ambos os métodos de confirmação exigem:
-        - mario_was_airborne: o Mario saiu do chão em algum momento durante este
-          salto, excluindo colisões ao nível do solo.
-        - mario_just_landed: o Mario está no chão ou dentro da janela de 2 frames
-          após aterrar, excluindo inimigos que caem num buraco enquanto o Mario
-          ainda está alto no ar.
+        Recurso por grelha (apenas quando a telemetria por tuplos está ausente):
+                Se os tuplos de inimigos não estiverem disponíveis em ambas as
+                observações, registar mortes a partir de uma diminuição global das
+                células pisáveis, condicionada pela flag persistente de proximidade
+                (enemy_was_recently_close), que é ativada quando um inimigo pisável está
+                na janela local da grelha abaixo do Mario (linhas 12-13, colunas 10-12).
 
-    A flag persistente enemy_was_recently_close expira após CLOSE_EXPIRY (10)
-    frames consecutivos sem inimigos na janela da grelha, impedindo que inimigos
-    que estiveram brevemente perto do Mario causem falsos positivos muitos
-    frames mais tarde.
+        Ambos os métodos de confirmação exigem:
+                - mario_was_airborne: o Mario saiu do chão em algum momento durante este
+                salto, excluindo colisões ao nível do solo.
+                - mario_just_landed: o Mario está no chão ou dentro da janela de 2 frames
+                após aterrar, excluindo inimigos que caem num buraco enquanto o Mario
+                ainda está alto no ar.
 
-    
+        A flag persistente enemy_was_recently_close expira após CLOSE_EXPIRY (10)
+        frames consecutivos sem inimigos na janela da grelha, impedindo que inimigos
+        que estiveram brevemente perto do Mario causem falsos positivos muitos
+        frames mais tarde.
+
+
 ---
 ---
 ---

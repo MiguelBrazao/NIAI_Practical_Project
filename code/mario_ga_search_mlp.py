@@ -6,7 +6,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from evaluation import evaluate_population, TASK_TO_SOLVE
 from pathlib import Path
 
@@ -20,6 +20,22 @@ def timer_context(label):
     finally:
         end = time.perf_counter()
         print(f"[{label}] Elapsed time: {end - start:.4f} seconds")
+
+
+class Tee:
+    """Write to multiple streams simultaneously."""
+
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+        return len(data)
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
 
 
 def make_evolution_plot(best, mean, save=False):
@@ -145,7 +161,7 @@ def update_sigma_stagnation(
     else:
         stagnation_count += 1
 
-    print("\n---------------------------------------------")
+    print("\n=============================================")
 
     # Stagnation restart
     if stagnation_count >= stagnation_limit:
@@ -167,7 +183,7 @@ def update_sigma_stagnation(
         print(f"Reward Std: {current_std:.1f} (ref: {reference_std:.1f}, norm: {std_norm:.2f})")
         print(f"Restart Ratio: {population_restart_ratio:.2f} → Reinitialized {n_reinit} individuals")
         print(f"Sigma set to {current_sigma:.4f}")
-        print(f"\n---------------------------------------------")
+        print(f"\n=============================================")
 
     print(f"\nSigma: {current_sigma:.4f}")
     print(f"Stagnation: {stagnation_count}/{stagnation_limit} ({stagnation_ratio*100:.1f}% of {generations} gens)")
@@ -218,9 +234,9 @@ def genetic_algorithm(
     # convert ratio to absolute generation count
     stagnation_limit = max(1, round(stagnation_ratio * generations))  
 
-    print(f"\n---------------------------------------------")
+    print(f"\n=============================================")
     print(f"\n{task_label} GA Search with MLP Agent")
-    print(f"\n---------------------------------------------\n")
+    print(f"\n=============================================\n")
     print(f"Generations: {generations}")
     print(f"Population Size: {population_size}")
     print(f"Tournament K: {tournament_k}")
@@ -235,10 +251,14 @@ def genetic_algorithm(
     print(f"Stagnation Ratio: {stagnation_ratio}")
     print(f"Restart Ratio Min: {restart_ratio_min}")
     print(f"Restart Ratio Max: {restart_ratio_max}")
-    print(f"\n---------------------------------------------")
+    print(f"\n=============================================")
     print(f"\nStagnation Limit is {stagnation_limit} generations")
-    print(f"\n---------------------------------------------")
+    print(f"\n=============================================")
     print(f"\nGeneration 1/{generations}")
+
+    # Timing bookkeeping
+    generation_times = []
+    total_start = time.perf_counter()
 
     # Initialize population with random parameter vectors    
     # get number of parameters from a fresh agent instance
@@ -247,7 +267,8 @@ def genetic_algorithm(
     # initialize population with random parameter vectors
     population = [np.random.randn(num_params) for _ in range(population_size)]
 
-    # Evaluate all individuals in the population and get their rewards 
+    # Evaluate all individuals in the population and get their rewards
+    gen_start = time.perf_counter()
     rewards, kills = evaluate_population(agent_class, population)
 
     # Keep track of the best parameters found so far 
@@ -296,11 +317,17 @@ def genetic_algorithm(
         sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
         stagnation_ratio, generations, restart_ratio_min, restart_ratio_max, reference_std
     )
+    gen_elapsed = time.perf_counter() - gen_start
+    generation_times.append(gen_elapsed)
+    print(f"\n=============================================")
+    print(f"\nGeneration {1} time: {gen_elapsed:.3f}s")
+    print(f"Mean/gen: {np.mean(generation_times):.3f}s | std/gen: {np.std(generation_times):.3f}s")
     new_best_found = False
     
     # Main evolutionary loop
     for generation in range(2, generations + 1):
-        print(f"\n---------------------------------------------")
+        gen_start = time.perf_counter()
+        print(f"\n=============================================")
         print(f"\nGeneration {generation}/{generations}")
 
         # Select elites from current population (based on current rewards)
@@ -377,7 +404,22 @@ def genetic_algorithm(
             sigma, sigma_decay, sigma_min, sigma_max, stagnation_limit, population_size,
             stagnation_ratio, generations, restart_ratio_min, restart_ratio_max, reference_std
         )
+        gen_elapsed = time.perf_counter() - gen_start
+        generation_times.append(gen_elapsed)
+        
+        print(f"\n=============================================")
+        print(f"\nGeneration {generation} time: {gen_elapsed:.3f}s")
+        print(f"Mean/gen: {np.mean(generation_times):.3f}s | Std/gen: {np.std(generation_times):.3f}s")
         new_best_found = False
+
+    total_elapsed = time.perf_counter() - total_start
+    print(f"\n=============================================")
+    print(f"\nGA Timing Summary")
+    print(f"Generations timed: {len(generation_times)}")
+    print(f"Mean time per generation: {np.mean(generation_times):.3f}s")
+    print(f"Std time per generation: {np.std(generation_times):.3f}s")
+    print(f"Total time (all generations): {total_elapsed:.3f}s")
+    print(f"\n=============================================\n")
 
     make_evolution_plot(best_rewards, mean_rewards,  True)
     inst = MLPAgent()
@@ -386,6 +428,17 @@ def genetic_algorithm(
 
 # Seeds to use: 42, 123, 999, 2024, 0
 if __name__ == "__main__":
-    np.random.seed(int(sys.argv[1]))
-    torch.random.manual_seed(int(sys.argv[1]))
-    genetic_algorithm()
+    seed = int(sys.argv[1])
+    np.random.seed(seed)
+    torch.random.manual_seed(seed)
+
+    method = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
+    log_dir = Path("data")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"ga_{method}_seed_{seed}.txt"
+
+    with open(log_path, 'a', encoding='utf-8') as log_file:
+        tee_out = Tee(sys.stdout, log_file)
+        tee_err = Tee(sys.stderr, log_file)
+        with redirect_stdout(tee_out), redirect_stderr(tee_err):
+            genetic_algorithm()

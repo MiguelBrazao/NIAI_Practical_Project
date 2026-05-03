@@ -25,8 +25,10 @@ class Rewards:
         # as part of the fitness packet
         self.reward = 0.0  
 
-        # diagnostic counter: total enemies 
-        # killed this episode (reset each episode)                                                           
+        # cumulative kill counter across all sub-episodes of a single outer episode.
+        # NOT reset between sub-episodes (level 0→1→2) so kills on earlier levels
+        # continue to inflate the terminal reward on later levels. Reset explicitly
+        # in evaluate_agent before the inner level loop, not inside reset().
         self.kill_count = 0
 
         # sticky flag: True once a stompable enemy enters the stomp window;
@@ -56,7 +58,8 @@ class Rewards:
         start fresh and are not influenced by the previous episode's state.
         """
         self.last_sense = None
-        self.kill_count = 0
+        # kill_count is NOT reset here so kills accumulate across sub-episodes
+        # within the same outer episode. It is reset explicitly in evaluate_agent.
         self.enemy_was_recently_close = False
         self.frames_since_close = 0
         self.mario_was_airborne = False
@@ -133,6 +136,11 @@ class Rewards:
     def kills(self, current_obs=None, last_obs=None):
         """
         Hybrid kill detection using both enemy tuples and level_scene counts.
+        Increments self.kill_count, which accumulates across all sub-episodes
+        (level 0→1→2) within a single outer episode. This means kills scored
+        on earlier levels continue to inflate the terminal reward on later levels.
+        kill_count is reset explicitly in evaluate_agent before the inner level
+        loop, not inside task.reset().
 
         Tuple path (preferred when tuple telemetry is available):
             1) Parse stompable enemies from last/current observations as

@@ -37,6 +37,7 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     for _ in range(episodes):
         episode_reward = 0
         task.level_difficulty = 0
+        task.kill_count = 0  # reset kills once per outer episode, not per sub-episode
 
         # Try up to 3 levels of increasing difficulty
         for _ in range(3):
