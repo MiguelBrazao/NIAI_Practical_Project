@@ -132,24 +132,26 @@ class Rewards:
 
     def kills(self, current_obs=None, last_obs=None):
         """
-        Hybrid kill detection using both enemy position tuples and the level_scene grid.
+        Hybrid kill detection using both enemy tuples and level_scene counts.
 
-        PRIMARY: tuple-based disappearance check
-            Each frame, stompable enemies from last_obs.enemies are matched to
-            current_obs.enemies by same type and nearest 2D distance within
-            MATCH_RADIUS (28 units). Enemies in last_obs that have no match in
-            current_obs are "disappeared". A kill is counted for each disappeared
-            enemy that was within the stomp zone relative to Mario's position in
-            last_obs (|dx| <= 22, 0 <= dy <= 52 world units below Mario).
+        Tuple path (preferred when tuple telemetry is available):
+            1) Parse stompable enemies from last/current observations as
+               (type, x, y) in world coordinates.
+            2) Match last->current by same type and nearest 2D displacement
+               within MATCH_RADIUS (42 units).
+            3) Unmatched last-frame enemies are "disappeared" this frame.
+            4) Keep only disappeared enemies that were in the stomp zone
+               around Mario in last_obs (|dx| <= 22, 0 <= dy <= 52).
+            5) Confirm only if global grid stompable count also drops in the
+               same frame; credited kills are min(tuple_disappeared, grid_drop).
 
-        FALLBACK: grid-based count drop
-            If the tuple list is absent or yields no result, a kill is registered
-            when the total stompable cell count in level_scene drops AND the sticky
-            proximity flag (enemy_was_recently_close) is set, indicating a stompable
-            enemy was in the local grid window (rows 12-13, cols 10-12, i.e. 1-2
-            tiles below, 1 tile left/right) in the previous frame.
+        Grid fallback (only when tuple telemetry is absent):
+            If enemy tuples are unavailable in both observations, register kills
+            from a global stompable-cell drop gated by the sticky proximity flag
+            (enemy_was_recently_close), which is set when a stompable enemy is in
+            the local grid window below Mario (rows 12-13, cols 10-12).
 
-        Both paths require:
+        Both confirmation paths require:
             - mario_was_airborne: Mario left the ground at some point this jump,
               ruling out ground-level collisions.
             - mario_just_landed: Mario is on the ground or within the 2-frame
@@ -253,9 +255,10 @@ class Rewards:
             dy = ey - my
             return (abs(dx) <= 22.0) and (0.0 <= dy <= 52.0)
 
-        # Greedy one-to-one matching by same 
-        # type and small 2D displacement.
-        MATCH_RADIUS = 28.0
+        # Greedy one-to-one matching by same type and 2D displacement.
+        # Slightly larger radius avoids false "disappear" events when an enemy
+        # moves quickly between frames but is still alive.
+        MATCH_RADIUS = 42.0
         MATCH_RADIUS2 = MATCH_RADIUS * MATCH_RADIUS
 
         # Parse stompable enemies as (type, x, y) 
@@ -316,6 +319,7 @@ class Rewards:
         cur_enemies = getattr(current_obs, 'enemies', [])
         last_enemies = getattr(last_obs, 'enemies', [])
 
+        '''
         # DEBUG: print whenever enemies are visible
         if prev_n > 0 or curr_n > 0:
             print(f"[KILLS DEBUG] enemy cells: {prev_n} -> {curr_n}  "
@@ -327,7 +331,8 @@ class Rewards:
                   f"kill_count={self.kill_count}  "
                   f"last enemies={last_enemies}  "
                   f"cur enemies={cur_enemies}")
-
+        '''
+                  
         # Kill check BEFORE any flag resets.
         # Requires ALL of:
         #   1. enemy was recently in stomp window (sticky, expires after 10 frames)
@@ -339,12 +344,21 @@ class Rewards:
         mario_just_landed = on_ground or self.frames_on_ground > 0
         grid_drop_kill_count = max(0, prev_n - curr_n)
 
-        # Primary signal: tuple-based disappeared stompable enemies near Mario.
-        # Fallback: grid count drop + sticky proximity guard (existing behavior).
+        # If tuple telemetry exists this frame, rely on tuple+grid agreement.
+        # Only use the old sticky grid fallback when tuple telemetry is absent.
+        tuple_tracking_available = bool(
+            (getattr(last_obs, 'enemies', None) or [])
+            or (getattr(current_obs, 'enemies', None) or [])
+        )
+
         confirmed_kills = 0
-        if tuple_kill_count > 0:
-            confirmed_kills = tuple_kill_count
+        if tuple_tracking_available:
+            # Confirm tuple disappearances only when the global stompable count
+            # also drops in the same frame.
+            if tuple_kill_count > 0 and grid_drop_kill_count > 0:
+                confirmed_kills = min(tuple_kill_count, grid_drop_kill_count)
         elif grid_drop_kill_count > 0 and self.enemy_was_recently_close:
+            # Legacy fallback path for builds/frames without enemy tuples.
             confirmed_kills = grid_drop_kill_count
 
         # Update kill count and reset flags if we registered a kill. 
@@ -357,7 +371,7 @@ class Rewards:
             self.frames_since_close = 0
             self.mario_was_airborne = False
             self.frames_on_ground = 0
-            print(f"[KILLS DEBUG] KILL REGISTERED +{confirmed_kills} kill_count={self.kill_count}")
+            # print(f"[KILLS DEBUG] KILL REGISTERED +{confirmed_kills} kill_count={self.kill_count}")
         elif on_ground and self.frames_on_ground >= 2:
             # 2+ consecutive ground frames without a kill — safe to reset sticky flags
             self.enemy_was_recently_close = False

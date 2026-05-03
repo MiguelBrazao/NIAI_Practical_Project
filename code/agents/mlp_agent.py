@@ -100,26 +100,24 @@ class MLPAgent(marioai.Agent):
         # Boolean flags mapped to {-1, 1}
         flags = np.array([2.0 * float(self.can_jump) - 1.0, 2.0 * float(self.on_ground) - 1.0])
 
-        # 3 closest enemies as (dx, dy) 
-        # relative to Mario, normalized to [-1, 1]
+        # 3 closest enemies as (dx, dy) relative to Mario, normalized to [-1, 1].
+        # enemies_floats entries are absolute world coords: (type, x, y).
+        # We compute offsets from Mario and sort by 2D distance from Mario.
         N_ENEMIES = 3
-        
-        # zero-padded if fewer than 3 enemies
-        # enemies are already (dx, dy) relative to Mario
-        enemy_features = np.zeros(N_ENEMIES * 2)  
-        if self.enemies_floats:
+        enemy_features = np.zeros(N_ENEMIES * 2)  # zero-padded if fewer than 3 enemies
+        if self.enemies_floats and self.mario_floats is not None:
+            mx, my = self.mario_floats[0], self.mario_floats[1]
             enemies = sorted(
                 self.enemies_floats,
-                key=lambda e: e[0]**2 + e[1]**2  
+                key=lambda e: (float(e[1]) - mx) ** 2 + (float(e[2]) - my) ** 2
             )[:N_ENEMIES]
             for i, enemy in enumerate(enemies):
-                # already (dx, dy) relative 
-                # offsets from Mario
-                ex, ey = enemy[0], enemy[1]
+                dx = float(enemy[1]) - mx  # relative x: positive = enemy is ahead
+                dy = float(enemy[2]) - my  # relative y: positive = enemy is below
                 
-                # scale [-256,256] → [-1,1]
-                enemy_features[i * 2]     = ex / 256.0  
-                enemy_features[i * 2 + 1] = ey / 256.0 
+                # scale [-256, 256] → [-1, 1]
+                enemy_features[i * 2]     = dx / 256.0
+                enemy_features[i * 2 + 1] = dy / 256.0
 
         # Concatenate all inputs into a single feature vector
         inputs = np.concatenate((scene_flat, mario_pos, flags, enemy_features))
