@@ -35,9 +35,9 @@ class HunterTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, 
           and penalizing undesirable behaviors (e.g., cowardice or reckless actions).
         """
-        # Reward for defeating enemies (secondary: encourages 
-        # combat and threat elimination); also increments kill_count
-        self.kills(current_obs=current_obs, last_obs=last_obs)
+        # Detect enemy contacts and accumulate in sub_episode_touch_events;
+        # evaluate_agent settles these into kill_count at sub-episode end.
+        self.kills(last_obs=last_obs)
         
         # Return the computed reward and 
         # reset internal state for next step

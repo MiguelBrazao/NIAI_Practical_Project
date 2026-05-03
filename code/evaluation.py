@@ -18,10 +18,6 @@ TASK_TO_SOLVE = MoveForwardTask if _task_env == 'move_forward' else HunterTask
 _vis_env = os.environ.get('GRAPHICS', '1').lower()
 VISUALIZE = False if _vis_env in ('0', 'false', 'no') else True
 
-# Optional evaluation trace for reward composition diagnostics
-_eval_debug_env = os.environ.get('EVAL_DEBUG', '0').lower()
-EVAL_DEBUG = _eval_debug_env in ('1', 'true', 'yes')
-
 port_list = [4242 + i for i in range(N_PROCESSES)]
 
 
@@ -41,19 +37,24 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     for _ in range(episodes):
         episode_reward = 0
         task.level_difficulty = 0
-        task.kill_count = 0  # reset kills once per outer episode, not per sub-episode
+        
+        # reset kills once per outer 
+        # episode, not per sub-episode
+        task.kill_count = 0  
 
-        # Try up to 3 levels of increasing difficulty
-        previous_kill_count = 0
-        for sub_episode_idx in range(1, 4):
-            prev_episode_reward = episode_reward
-            kill_count_before_sub = int(getattr(task, 'kill_count', 0))
+        # Try up to 3 levels 
+        # of increasing difficulty
+        for _ in range(3):
             exp.doEpisodes(1)
 
-            # If Mario died, discard any kills counted during this sub-episode
-            # (deaths-by-goomba trigger the same touch+disappear signal as stomps).
-            if task.status != 1:
-                task.kill_count = kill_count_before_sub
+            # Convert touch events from 
+            # this sub-episode into kills.
+            # Rule requested:
+            # - if Mario does not die (WIN), count all touches
+            # - if Mario dies, discard only the last touch (death hit)
+            task.kill_count += int(getattr(task, 'sub_episode_touch_events', 0))
+
+            # print(f"Confirmed kills this sub-episode: {getattr(task, 'sub_episode_touch_events', 0)}")
 
             # Apply kill multiplier to the base terminal reward NOW, after kills
             # have been corrected. base_terminal_reward was stored without kill
@@ -63,25 +64,6 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
             task.cum_reward += kill_bonus
 
             episode_reward += task.cum_reward
-
-            # Calculate kills for this sub-episode by looking at the change in kill_count
-            sub_episode_kills = max(0, int(getattr(task, 'kill_count', 0)) - previous_kill_count)
-
-            # Update previous_kill_count for the next iteration
-            previous_kill_count = int(getattr(task, 'kill_count', 0))
-
-            if EVAL_DEBUG:
-                sub_reward = episode_reward - prev_episode_reward
-                print(
-                    f"[EVAL DEBUG] sub={sub_episode_idx} "
-                    f"difficulty={task.level_difficulty} "
-                    f"status={task.status} "
-                    f"terminal_distance={getattr(task, 'last_terminal_distance', 0.0):.2f} "
-                    f"kill_count={getattr(task, 'kill_count', 0)} "
-                    f"sub_kills={sub_episode_kills} "
-                    f"sub_reward={sub_reward:.2f} "
-                    f"episode_reward_so_far={episode_reward:.2f}"
-                )
 
             if task.status == 1: # WIN
                 task.level_difficulty += 1
