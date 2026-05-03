@@ -32,6 +32,11 @@ class Rewards:
         # raw distance from the latest terminal FIT packet
         self.last_terminal_distance = 0.0
 
+        # base terminal reward (distance * difficulty * ratio) WITHOUT kill multiplier,
+        # stored so evaluate_agent can apply the kill bonus after potentially
+        # discarding kills counted during a death sub-episode.
+        self.base_terminal_reward = 0.0
+
         # cumulative kill counter across all sub-episodes of a single outer episode.
         # NOT reset between sub-episodes (level 0→1→2) so kills on earlier levels
         # continue to inflate the terminal reward on later levels. Reset explicitly
@@ -61,6 +66,7 @@ class Rewards:
         # kill_count is NOT reset here so kills accumulate across sub-episodes
         # within the same outer episode. It is reset explicitly in evaluate_agent.
         self.last_terminal_distance = 0.0
+        self.base_terminal_reward = 0.0
         for k in self.kill_debug_counts:
             self.kill_debug_counts[k] = 0
         self.recent_touch_frames = 0
@@ -93,24 +99,21 @@ class Rewards:
             self.status = sense.status
             self.last_terminal_distance = float(getattr(sense, 'distance', 0.0) or 0.0)
 
-            # Distance reward scaled by level difficulty and progression ratio.
-            # Multiplied by a kill bonus: each kill amplifies the whole reward,
-            # so a killer that goes half as far still beats a runner with 0 kills
-            # once kill_multiplier is tuned appropriately.
-            # When kill_count=0 (e.g. MoveForwardTask never calls kills()),
-            # the multiplier is exactly 1.0 — pure distance reward.
-            terminal_reward = (
+            # Base distance reward WITHOUT kill multiplier. The kill bonus is
+            # applied later in evaluate_agent, after potentially discarding kills
+            # counted during a death sub-episode (death-by-enemy triggers the same
+            # touch+disappear signal as a stomp and would otherwise be a false kill).
+            self.base_terminal_reward = (
                 (sense.distance * (1 + self.level_difficulty)) * self.progression_reward_ratio
-                * (1 + self.kill_count * self.kill_multiplier)
             )
 
             # assign (not +=): self.reward still holds last step's
             # value which was already counted by perform_action
-            self.reward = terminal_reward  
+            self.reward = self.base_terminal_reward
 
-            # perform_action is skipped when 
+            # perform_action is skipped when
             # finished=True, so add directly
-            self.cum_reward += self.reward  
+            self.cum_reward += self.reward
             self.finished = True
 
             if self.kill_debug:

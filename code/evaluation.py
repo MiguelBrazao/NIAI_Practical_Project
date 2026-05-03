@@ -55,6 +55,13 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
             if task.status != 1:
                 task.kill_count = kill_count_before_sub
 
+            # Apply kill multiplier to the base terminal reward NOW, after kills
+            # have been corrected. base_terminal_reward was stored without kill
+            # bonus so we can safely recompute it here.
+            base = getattr(task, 'base_terminal_reward', 0.0)
+            kill_bonus = base * (task.kill_count * task.kill_multiplier)
+            task.cum_reward += kill_bonus
+
             episode_reward += task.cum_reward
 
             # Calculate kills for this sub-episode by looking at the change in kill_count
