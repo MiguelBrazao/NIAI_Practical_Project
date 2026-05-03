@@ -321,7 +321,9 @@ def genetic_algorithm(
     generation_times.append(gen_elapsed)
     print(f"\n=============================================")
     print(f"\nGeneration {1} time: {gen_elapsed:.3f}s")
-    print(f"Mean/gen: {np.mean(generation_times):.3f}s | std/gen: {np.std(generation_times):.3f}s")
+    print(f"Total so far: {sum(generation_times):.3f}s")
+    print(f"Mean/gen: {np.mean(generation_times):.3f}s")
+    print(f"Std/gen: {np.std(generation_times):.3f}s")
     new_best_found = False
     
     # Main evolutionary loop
@@ -409,7 +411,9 @@ def genetic_algorithm(
         
         print(f"\n=============================================")
         print(f"\nGeneration {generation} time: {gen_elapsed:.3f}s")
-        print(f"Mean/gen: {np.mean(generation_times):.3f}s | Std/gen: {np.std(generation_times):.3f}s")
+        print(f"Total so far: {sum(generation_times):.3f}s")
+        print(f"Mean/gen: {np.mean(generation_times):.3f}s")
+        print(f"Std/gen: {np.std(generation_times):.3f}s")
         new_best_found = False
 
     total_elapsed = time.perf_counter() - total_start

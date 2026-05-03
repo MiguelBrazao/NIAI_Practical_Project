@@ -49,21 +49,6 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         rewards.Rewards.reset(self)
         
 
-    def perform_action(self, action):
-        """
-        Gets called every time the agent performs an action. 
-        We can use this to track the last action taken by the agent, 
-        which can be useful for computing rewards that depend on the 
-        agent's behavior (e.g., rewarding jumps when they lead to 
-        progress or penalizing actions that lead to negative 
-        outcomes). By storing the last action, we can also 
-        analyze action patterns and their impact on the 
-        reward signal.
-        """
-        marioai.Task.perform_action(self, action)
-        rewards.Rewards.perform_action(self, action)
-        
-
     def get_sensors(self):
         """
         This method runs every step and is responsible for returning the current observation of 
