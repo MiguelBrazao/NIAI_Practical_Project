@@ -7148,3 +7148,102 @@ Std/gen: 6.023s
 =============================================
 
 Generation 215/250
+
+Max = 14208.000
+Min = 299.000
+Mean = 3902.725
+Std = 3693.781
+Top 4: [ 0  1  2 34]
+Top 4 rewards:
+1:  14208.0
+2:  14208.0
+3:  14208.0
+4:  12513.0
+Elite Count: 3
+
+Best Candidate Kills: 2
+Best Candidate Coins: 25
+Best Candidate Distance: 7072.0
+Best Candidate Levels Completed: 3
+
+=============================================
+
+Sigma: 0.5153
+Stagnation: 3/25 (10.0% of 250 gens)
+
+=============================================
+
+Generation 215 time: 27.674s
+Total so far: 6873.656s
+Mean/gen: 31.970s
+Std/gen: 6.016s
+
+=============================================
+
+Generation 216/250
+
+Max = 14208.000
+Min = 299.000
+Mean = 3784.122
+Std = 3581.887
+Top 4: [ 0  1  2 44]
+Top 4 rewards:
+1:  14208.0
+2:  14208.0
+3:  14208.0
+4:  12506.903686523438
+Elite Count: 3
+
+Best Candidate Kills: 2
+Best Candidate Coins: 25
+Best Candidate Distance: 7072.0
+Best Candidate Levels Completed: 3
+
+=============================================
+
+Sigma: 0.5205
+Stagnation: 4/25 (10.0% of 250 gens)
+
+=============================================
+
+Generation 216 time: 29.285s
+Total so far: 6902.941s
+Mean/gen: 31.958s
+Std/gen: 6.005s
+
+=============================================
+
+Generation 217/250
+
+Max = 14208.000
+Min = 259.594
+Mean = 3760.771
+Std = 3235.655
+Top 4: [ 0  1  2 88]
+Top 4 rewards:
+1:  14208.0
+2:  14208.0
+3:  14208.0
+4:  12513.0
+Elite Count: 3
+
+Best Candidate Kills: 2
+Best Candidate Coins: 25
+Best Candidate Distance: 7072.0
+Best Candidate Levels Completed: 3
+
+=============================================
+
+Sigma: 0.5258
+Stagnation: 5/25 (10.0% of 250 gens)
+
+=============================================
+
+Generation 217 time: 28.744s
+Total so far: 6931.686s
+Mean/gen: 31.943s
+Std/gen: 5.995s
+
+=============================================
+
+Generation 218/250
