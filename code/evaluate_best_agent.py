@@ -54,8 +54,8 @@ def evaluate_mlp_agent():
 
     agent.set_param_vector(best_params)
 
-    reward, kills = evaluation.evaluate_agent(agent, task, episodes=1, max_fps=60)
-    print(f"Reward: {reward:.3f}  |  Kills: {kills}")
+    reward, kills, coins, distance, levels = evaluation.evaluate_agent(agent, task, episodes=1, max_fps=60)
+    print(f"Reward: {reward:.3f}  |  Kills: {kills}  |  Coins: {coins}  |  Distance: {distance:.1f}  |  Levels completed: {levels}")
 
 
 if __name__ == '__main__':

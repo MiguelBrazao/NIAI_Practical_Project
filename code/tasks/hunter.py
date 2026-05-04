@@ -10,6 +10,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         marioai.Task.__init__(self, *args, **kwargs)
         rewards.Rewards.__init__(self)
         self.name = "Hunter"
+        self.kill_rewards = True
 
 
     def compute_reward(self, current_obs, last_obs):
@@ -35,14 +36,7 @@ class HunterTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, 
           and penalizing undesirable behaviors (e.g., cowardice or reckless actions).
         """
-        # Detect enemy contacts and accumulate in sub_episode_touch_events;
-        # evaluate_agent settles these into kill_count at sub-episode end.
-        self.kills(last_obs=last_obs)
-        
-        # Return the computed reward and 
-        # reset internal state for next step
-        return self.reward
-
+        return rewards.Rewards.compute_reward(self, current_obs, last_obs)
 
     def reset(self):
         """

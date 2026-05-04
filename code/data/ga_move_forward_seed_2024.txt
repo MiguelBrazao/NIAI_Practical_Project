@@ -1,0 +1,95 @@
+
+=============================================
+
+MOVE FORWARD GA Search with MLP Agent
+
+=============================================
+
+Generations: 250
+Population Size: 100
+Tournament K: 4
+Elite Count: 3
+Crossover Rate: 0.95
+Crossover Mask Prob: 0.5
+Mutation Rate: 0.1
+Sigma: 0.5
+Sigma Decay: 0.99
+Sigma Min: 0.1
+Sigma Max: 1.5
+Stagnation Ratio: 0.1
+Restart Ratio Min: 0.25
+Restart Ratio Max: 0.75
+
+=============================================
+
+Stagnation Limit is 25 generations
+
+=============================================
+
+Generation 1/250
+
+Max = 363.000
+Min = 0.000
+Mean = 98.032
+Std = 123.958
+Top 4: [81 97 11 39]
+Top 4 rewards:
+1:  363.0
+2:  300.1340026855469
+3:  300.1340026855469
+4:  300.1340026855469
+Elite Count: 3
+
+Best Candidate Coins: 2
+Best Candidate Distance: 363.0
+Best Candidate Levels Completed: 0
+
+Saved new best agent with reward 363.000
+
+=============================================
+
+Sigma: 0.4950
+Stagnation: 0/25 (10.0% of 250 gens)
+
+=============================================
+
+Generation 1 time: 45.883s
+Total so far: 45.883s
+Mean/gen: 45.883s
+Std/gen: 0.000s
+
+=============================================
+
+Generation 2/250
+
+Max = 363.000
+Min = 0.000
+Mean = 165.050
+Std = 134.290
+Top 4: [ 0 28 12 47]
+Top 4 rewards:
+1:  363.0
+2:  300.1340026855469
+3:  300.1340026855469
+4:  300.1340026855469
+Elite Count: 3
+
+Best Candidate Coins: 2
+Best Candidate Distance: 363.0
+Best Candidate Levels Completed: 0
+
+=============================================
+
+Sigma: 0.5000
+Stagnation: 1/25 (10.0% of 250 gens)
+
+=============================================
+
+Generation 2 time: 44.789s
+Total so far: 90.672s
+Mean/gen: 45.336s
+Std/gen: 0.547s
+
+=============================================
+
+Generation 3/250

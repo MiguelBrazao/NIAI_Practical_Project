@@ -4,6 +4,7 @@ class Rewards:
         self,
         progression_reward_ratio=1.0,
         kill_multiplier=50.0,
+        kill_rewards=False
     ):
         """Initialize reward and kill-tracking state for a task episode."""
         # Ratio to scale the distance reward
@@ -16,6 +17,14 @@ class Rewards:
         # With 0 kills the multiplier is 1.0, so MoveForwardTask (which never
         # calls kills()) degrades to pure distance reward.
         self.kill_multiplier = kill_multiplier
+
+        # Whether to include kill rewards in the reward computation. 
+        # If False, kill events are still tracked in sub_episode_touch_events 
+        # and kill_count for reporting purposes, but they do not contribute 
+        # to the reward value returned by get_sensors. This allows for 
+        # ablation studies to isolate the impact of kill rewards 
+        # on agent performance.
+        self.kill_rewards = kill_rewards
 
         # to store the last observation for reward comparison 
         # (e.g., to compute movement, coin collection, enemy kills)
@@ -44,6 +53,11 @@ class Rewards:
         # Reset by reset() at the start of each sub-episode.
         self.sub_episode_touch_events = 0
 
+        # Stats captured from the terminal FIT packet / last step observation.
+        # Read by evaluate_agent after each sub-episode ends.
+        self.last_coins = 0
+        self.last_mario_pos = None
+
 
     def reset(self):
         """
@@ -53,10 +67,31 @@ class Rewards:
         sub-episodes inside one outer evaluation episode.
         """
         self.last_sense = None
+       
         # kill_count is NOT reset here so kills accumulate across sub-episodes
         # within the same outer episode. It is reset explicitly in evaluate_agent.
+       
+        # sub_episode_touch_events is reset here because it tracks kills within 
+        # a single sub-episode, and should not carry over between levels.
         self.base_terminal_reward = 0.0
+        
+        # reward is reset here to ensure that if get_sensors is called before 
+        # any steps are taken, it returns 0 reward instead of carrying over 
+        # the last step's reward.
         self.sub_episode_touch_events = 0
+        
+        # Stats captured from the terminal FIT packet / last step observation.
+        self.last_coins = 0
+
+        # We track Mario's last position to compute distance-based rewards 
+        # and to detect enemy contacts for kill rewards. This is updated 
+        # in get_sensors and used in compute_reward.
+        self.last_mario_pos = None
+
+        # We also track the last distance for potential use in shaping 
+        # rewards based on progress since the last step, if desired. 
+        # This is reset here to ensure it starts fresh each episode.
+        self.last_distance = 0.0
 
 
     def perform_action(self, action):
@@ -99,17 +134,40 @@ class Rewards:
             # finished=True, so add directly
             self.cum_reward += self.reward
             self.finished = True
+
+            # Capture terminal stats for evaluate_agent to read.
+            self.last_coins = sense.coins
+            # mario_pos is only in step packets; use the last recorded one.
+            self.last_mario_pos = self.last_sense.mario_pos if self.last_sense is not None else None
         else:
             step_reward = self.compute_reward(sense, self.last_sense)
             self.reward = step_reward
             self.last_sense = sense
 
         return sense
+    
 
-
-    def kills(self, last_obs=None):
+    def compute_reward(self, current_obs, last_obs):
         """
-        Detect enemy contacts and accumulate them in sub_episode_touch_events.
+        Computes the reward for the current state of the game based on Mario's 
+        actions and the environment changes between the current and last observations. 
+        This function evaluates Mario's progress, interactions with enemies, and overall 
+        performance to calculate a reward value. The reward is used as the fitness function 
+        for the evolutionary algorithm. Parameters: - current_obs: The current observation 
+        of the game state; - last_obs: The previous observation of the game state; 
+        
+        Returns: - reward (float): The computed reward value based on the game state changes. 
+        """
+        # Detect enemy contacts 
+        # as kills and track them.
+        self.kills(last_obs)
+
+        return self.reward
+    
+    
+    def kills(self, last_obs):
+        """
+        Detects enemy contacts and accumulate them in sub_episode_touch_events.
 
         Each call checks whether any stompable enemy (by type ID) is within
         the touch zone of Mario's position in last_obs. Every new contact

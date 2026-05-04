@@ -109,7 +109,7 @@ def save_best_agent(params, reward):
     print(f"\nSaved new best agent with reward {reward:.3f}")
 
 
-def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
+def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None, coins=None, distance=None, levels=None):
     """
     Prints debug information about the population's 
     rewards, including statistics and top performers.
@@ -124,10 +124,23 @@ def debug_evaluate_population(rewards, tournament_k, elite_count, kills=None):
     for i in range(min(5, len(top))):
         print(f"{i+1}: ", rewards[top[i]])
     print(f"Elite Count: {elite_count}")
+    best_idx = np.argmax(rewards)
+    if kills is not None or coins is not None or distance is not None or levels is not None:
+        print("")
     if kills is not None:
-        best_kills = kills[np.argmax(rewards)]
+        best_kills = kills[best_idx]
         if best_kills > 0:
-            print(f"\nBest Candidate Kills: {best_kills}")
+            print(f"Best Candidate Kills: {best_kills}")
+    if coins is not None:
+        best_coins = coins[best_idx]
+        if best_coins > 0:
+            print(f"Best Candidate Coins: {best_coins}")
+    if distance is not None:
+        best_distance = distance[best_idx]
+        print(f"Best Candidate Distance: {best_distance:.1f}")
+    if levels is not None:
+        best_levels = levels[best_idx]
+        print(f"Best Candidate Levels Completed: {best_levels}")
 
 
 def update_sigma_stagnation(
@@ -265,11 +278,16 @@ def genetic_algorithm(
     num_params = len(MLPAgent().get_param_vector())  
 
     # initialize population with random parameter vectors
+    # each individual is a numpy array of shape (num_params,) representing the MLP weights
+    # the initial population is sampled from a standard normal distribution, which is a common 
+    # choice for weight initialization in neural networks and provides a good starting point 
+    # for evolution. The randomness in the initial population promotes diversity, 
+    # which is crucial for the effectiveness of the genetic algorithm.
     population = [np.random.randn(num_params) for _ in range(population_size)]
 
     # Evaluate all individuals in the population and get their rewards
     gen_start = time.perf_counter()
-    rewards, kills = evaluate_population(agent_class, population)
+    rewards, kills, coins, distance, levels = evaluate_population(agent_class, population)
 
     # Keep track of the best parameters found so far 
     best_params = deepcopy(population[np.argmax(rewards)]) 
@@ -284,7 +302,7 @@ def genetic_algorithm(
     reference_std = rewards.std()  
     
     # Print diagnostics about the rewards distribution in the initial population
-    debug_evaluate_population(rewards, tournament_k, elite_count, kills) 
+    debug_evaluate_population(rewards, tournament_k, elite_count, kills, coins, distance=distance, levels=levels) 
 
     # Save the best agent from the initial population
     save_best_agent(best_params, best_reward) 
@@ -337,6 +355,9 @@ def genetic_algorithm(
         elites = [deepcopy(population[i]) for i in elite_idx]
         elite_rewards_carried = rewards[elite_idx].copy() 
         elite_kills_carried = kills[elite_idx].copy() 
+        elite_coins_carried = coins[elite_idx].copy() 
+        elite_distance_carried = distance[elite_idx].copy() 
+        elite_levels_carried = levels[elite_idx].copy()
         best_candidate = deepcopy(population[elite_idx[0]])
         best_candidate_reward = rewards[elite_idx[0]]
 
@@ -371,10 +392,13 @@ def genetic_algorithm(
         # Advance to new population; evaluate only 
         # offspring, carry elite rewards forward
         population = new_population
-        offspring_rewards, offspring_kills = evaluate_population(agent_class, population[elite_count:])
+        offspring_rewards, offspring_kills, offspring_coins, offspring_distance, offspring_levels = evaluate_population(agent_class, population[elite_count:])
         rewards = np.concatenate([elite_rewards_carried, offspring_rewards])
         kills = np.concatenate([elite_kills_carried, offspring_kills])
-        debug_evaluate_population(rewards, tournament_k, elite_count, kills)
+        coins = np.concatenate([elite_coins_carried, offspring_coins])
+        distance = np.concatenate([elite_distance_carried, offspring_distance])
+        levels = np.concatenate([elite_levels_carried, offspring_levels])
+        debug_evaluate_population(rewards, tournament_k, elite_count, kills, coins, distance=distance, levels=levels)
 
         # Track global best: check both the old elite 
         # (carried forward) and the new population's best

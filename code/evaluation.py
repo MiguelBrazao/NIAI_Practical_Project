@@ -24,15 +24,20 @@ port_list = [4242 + i for i in range(N_PROCESSES)]
 def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     """
     Evaluates the agent on the task for a given number of episodes.
-    Returns (average_reward, total_kills).
+    Returns (average_reward, total_kills, total_coins, total_distance, total_levels_completed).
     """
     exp = marioai.Experiment(task, agent)
 
     # Speed up simulation for training
     exp.max_fps = max_fps
     
+    # We will accumulate rewards and kills 
+    # across all episodes and return the averages.
     total_reward = 0
     total_kills = 0
+    total_coins = 0
+    total_distance = 0.0
+    total_levels_completed = 0
 
     for _ in range(episodes):
         episode_reward = 0
@@ -56,26 +61,33 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
 
             # print(f"Confirmed kills this sub-episode: {getattr(task, 'sub_episode_touch_events', 0)}")
 
-            # Apply kill multiplier to the base terminal reward NOW, after kills
-            # have been corrected. base_terminal_reward was stored without kill
-            # bonus so we can safely recompute it here.
-            base = getattr(task, 'base_terminal_reward', 0.0)
-            kill_bonus = base * (task.kill_count * task.kill_multiplier)
-            task.cum_reward += kill_bonus
+            # The base distance reward is already in task.cum_reward (added by
+            # get_sensors at episode end). Here we only add the kill bonus on top,
+            # and only when kill_rewards is enabled. When disabled, kills are still
+            # tracked in kill_count for reporting but do not affect the reward.
+            if getattr(task, 'kill_rewards', False):
+                kill_bonus = getattr(task, 'base_terminal_reward', 0.0) * task.kill_count * task.kill_multiplier
+                task.cum_reward += kill_bonus
 
             episode_reward += task.cum_reward
 
+            # Accumulate distance and coins per sub-episode (both reset each level).
+            mario_pos = getattr(task, 'last_mario_pos', None)
+            total_distance += float(mario_pos[0]) if mario_pos is not None else 0.0
+            total_coins += int(getattr(task, 'last_coins', 0))
+
             if task.status == 1: # WIN
+                total_levels_completed += 1
                 task.level_difficulty += 1
             else:
                 break
         
-        # Report cumulative kills for the whole outer episode.
-        total_kills += int(getattr(task, 'kill_count', 0))
-
+        # Report cumulative stats for the whole outer episode.
         total_reward += episode_reward
+        total_kills += int(getattr(task, 'kill_count', 0))
         
-    return total_reward / episodes, total_kills
+        
+    return total_reward / episodes, total_kills, total_coins, total_distance, total_levels_completed
 
 
 # --- GLOBAL VARIABLES FOR WORKER PROCESSES ---
@@ -122,13 +134,16 @@ def evaluate_individual(ind_info):
     # 2. Run evaluation using the EXISTING connection
     # No "with", no "connect", just use the persistent object.
     try:
-        reward, kills = evaluate_agent(worker_agent, worker_task)
+        reward, kills, coins, distance, levels = evaluate_agent(worker_agent, worker_task)
     except Exception as e:
         print(f"Error in worker: {e}")
         reward = 0
         kills = 0
+        coins = 0
+        distance = 0.0
+        levels = 0
         
-    return reward, kills
+    return reward, kills, coins, distance, levels
 
 
 def evaluate(agent_class, ind_info):
@@ -152,6 +167,9 @@ def evaluate_population(agent, population):
     
     worker_task = None
 
-    rewards_list = [r for r, k in results]
-    kills_list = [k for r, k in results]
-    return np.array(rewards_list), np.array(kills_list, dtype=int)
+    rewards_list = [r for r, k, c, d, l in results]
+    kills_list = [k for r, k, c, d, l in results]
+    coins_list = [c for r, k, c, d, l in results]
+    distance_list = [d for r, k, c, d, l in results]
+    levels_list = [l for r, k, c, d, l in results]
+    return np.array(rewards_list), np.array(kills_list, dtype=int), np.array(coins_list, dtype=int), np.array(distance_list), np.array(levels_list, dtype=int)

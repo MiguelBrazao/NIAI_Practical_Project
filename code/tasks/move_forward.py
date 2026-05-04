@@ -35,8 +35,7 @@ class MoveForwardTask(marioai.Task, rewards.Rewards):
         - Consider the balance between encouraging progress, rewarding kills, 
           and penalizing undesirable behaviors (e.g., cowardice or reckless actions).
         """
-        # Return the computed reward and reset internal state for next step
-        return self.reward 
+        return rewards.Rewards.compute_reward(self, current_obs, last_obs)
 
 
     def reset(self):
