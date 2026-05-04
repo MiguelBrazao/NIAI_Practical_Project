@@ -38,16 +38,21 @@ def timer_context(label):
         print(f"[{label}] Elapsed time: {end - start:.4f} seconds")
 
 
-def make_evolution_plot(best, mean, title, save=False):
+def make_evolution_plot(best, mean, save=False):
+    """
+    Constructs a plot of the best and mean rewards over generations. 
+    The plot is updated in real-time during the evolution process.
+    """
+    mode = 'hunter' if TASK_TO_SOLVE.__name__ == 'HunterTask' else 'move_forward'
     plt.plot(best, label='Best Reward')
     plt.plot(mean, label='Mean Reward')
     plt.xlabel('Generation')
     plt.ylabel('Reward')
-    plt.title(title)
+    plt.title('Random Search Evolution - ' + mode.capitalize() + f' (Best Reward: {best[-1]:.3f})')
     plt.legend()
     plt.draw()
     if save:
-        plt.savefig(f'{title}.png')
+        plt.savefig(f'rs_{mode}_seed_{sys.argv[1]}_{best[-1]:.3f}.png')
     plt.pause(0.01)
     plt.clf()
 
@@ -107,7 +112,7 @@ def random_search(population_size=100, generations=250, sigma=0.5, seed=None):
         print(f"Mean/iter: {np.mean(generation_times):.3f}s")
         print(f"Std/iter: {np.std(generation_times):.3f}s")
 
-    make_evolution_plot(best_rewards, mean_rewards, "RS", True)
+    make_evolution_plot(best_rewards, mean_rewards, True)
     
 
     return best_params
