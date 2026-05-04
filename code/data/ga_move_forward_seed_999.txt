@@ -1,0 +1,29 @@
+
+=============================================
+
+MOVE FORWARD GA Search with MLP Agent
+
+=============================================
+
+Generations: 250
+Population Size: 100
+Tournament K: 4
+Elite Count: 3
+Crossover Rate: 0.95
+Crossover Mask Prob: 0.5
+Mutation Rate: 0.1
+Sigma: 0.5
+Sigma Decay: 0.99
+Sigma Min: 0.1
+Sigma Max: 1.5
+Stagnation Ratio: 0.1
+Restart Ratio Min: 0.25
+Restart Ratio Max: 0.75
+
+=============================================
+
+Stagnation Limit is 25 generations
+
+=============================================
+
+Generation 1/250

@@ -122,7 +122,9 @@ class Rewards:
         if last_obs is None:
             return
 
-        STOMPABLE = {2, 3, 4, 5, 6, 7, 13}
+        # We remove the shell enemy type (13) from the stompable set 
+        # because it behaves differently than other enemies.
+        STOMPABLE = {2, 3, 4, 5, 6, 7} # {2, 3, 4, 5, 6, 7, 13}
 
         def parse_stompable_enemies(obs):
             """
