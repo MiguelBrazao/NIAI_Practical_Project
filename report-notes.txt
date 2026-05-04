@@ -72,7 +72,21 @@ Restou-nos então descobrir uma forma de registar correctamente quando o mario m
 
 Decidimos por isso, simplificar esta analise e reduzir a procura de hipoteses para inimigos que o mario mate com stomp, baseando-nos nao só no observado em horas de teste, mas também incentivando a que mario se foque em matar inimigos dessa forma.
 
-Para tal, o nosso metodo deteta contactos com inimigos e acumula-os em sub_episode_touch_events. Cada chamada verifica se algum inimigo que pode ser pisado, identificado pelo ID de tipo, está dentro da zona de contacto da posição do Mario em last_obs. Cada novo contacto incrementa sub_episode_touch_events em um. sub_episode_touch_events é reiniciado por reset() no início de cada subepisódio. kill_count acumula entre subepisódios e é reiniciado explicitamente em evaluate_agent antes do ciclo exterior de episódios. Depois, é no evaluate agent que, ao fim do episodio total, limpamos a contagem de kills, para que possamos usar o total acumulado entre niveis como multiplicador para a nossa recompensa para o agente, de modo a motivá-lo a não só andar para a frente como também em matar todos os inimigos com que se cruze.
+Começamos por tentar uma abordagem para contar kills por inimigo que desaparecia do array enemies, mas dava falsos positivos; depois tentamos utilizar a grelha do mundo, mas obtiamos falsos negativos dessa vez; tentamos uma combinação de ambos, mas tornava-se muito inconsistente. 
+
+Por fim, desenvolvemos o nosso metodo de uma forma simples: este deteta contactos com inimigos e acumula-os em sub_episode_touch_events. Cada chamada verifica se algum inimigo que pode ser pisado, identificado pelo ID de tipo, está dentro da zona de contacto da posição do Mario em last_obs. Cada novo contacto incrementa sub_episode_touch_events em um. sub_episode_touch_events é reiniciado por reset() no início de cada subepisódio. kill_count acumula entre subepisódios e é reiniciado explicitamente em evaluate_agent antes do ciclo exterior de episódios. Depois, é no evaluate agent que, ao fim do episodio total, limpamos a contagem de kills, para que possamos usar o total acumulado entre niveis como multiplicador para a nossa recompensa para o agente, de modo a motivá-lo a não só andar para a frente como também em matar todos os inimigos com que se cruze.
+
+Esta abordagem mostrou-se ótima para detectar stomps, no entanto, em primeira instancia, considerámos que as shells eram também inimigos, o que resultou numa run em que o mario, a meio do terceiro nivel, pega numa shell e fica no mesmo sitio aos saltos. Para corrigir, deixamos de considerar shells como inimigos stompable, resolvendo a situação.
+
+ANALISE:
+Todos os nossos treinos finais para as diferentes funções de fit e seeds foram executados com o algoritmo genetico com os mesmos hiperparametros, para podermos ter uma comparação direta.
+
+Com o nosso algoritmo genetico e a nossa função de fit para o move forward, conseguimos obter convergencia por volta das 120/130 gerações, conseguindo terminar os tres niveis com todas as seeds, obtendo resultados muito semelhantes entre elas.
+
+Já para o hunter, notamos que as seeds influenciam mais na geração de individuos da população que matem inimigos: nuns casos matam mais num nivel, noutros casos, matam mais outro nivel; mas os resultados sao promissores. A nossa função de fit não só garantiu que o agente é recompensado por andar para à frente para encontrar inimigos (e eventualmente terminar o nivel), como por matar. Acreditamos que para esta função de fit, se aumentarmos as gerações do treino, eventualmente poderíamo-nos aproximar de uma performance ótima em que o agente matasse todos os inimigos com que se cruzasse. No entanto, por motivos de constrangimentos tecnicos e temporais, não pudemos infelizmente testar esses casos.
+
+Para o futuro, seria interessante explorar o algoritmo genetico apenas para o caso do hunter, de modo a encontrar qual o maior numero de inimigos que consegue matar e que hiperparametros assim o permitem; assim como o desenvolvimento de funções de fit para: menor tempo por nivel, maior numero de moedas, apanhar powerups e, tentar uma combinação de todos para construir o super mario mais eficiente.
+
 ---
 ---
 ---
