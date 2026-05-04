@@ -89,7 +89,7 @@ o move forward focou se em acabar os niveis, mas mesmo assim apanha algumas moed
 
 o hunter mata muito mais, nota se que o treino surte efeito, apanha algumas moedas e, como a função contem a recompensa para ele andar para a frente para encontrar inimigos, tambem acaba os niveis
 
-o RS mostrou-se uma boa base line, mas o comportamento completamente random mostrou-se muito aquém de um bom algoritmo genetico.
+corremos o RS também para as tasks move_forward e hunter, com as mesmas 5 seeds que usamos no algoritmo genetico (42, 123, 999, 2024, 0). O RS mostrou-se uma boa base line, mas o comportamento completamente random mostrou-se muito aquém de um bom algoritmo genetico.
 
 Para o futuro, seria interessante explorar o algoritmo genetico apenas para o caso do hunter, de modo a encontrar qual o maior numero de inimigos que consegue matar e que hiperparametros assim o permitem; assim como o desenvolvimento de funções de fit para: menor tempo por nivel, maior numero de moedas, apanhar powerups e, tentar uma combinação de todos para construir o super mario mais eficiente.
 
