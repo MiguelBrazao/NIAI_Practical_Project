@@ -74,13 +74,15 @@ def random_search(population_size=100, generations=250, sigma=0.5, seed=None):
     best_reward = -np.inf
     best_rewards = []
     mean_rewards = []
+    generation_times = []
+    total_start = time.perf_counter()
 
     for generation in range(generations):
-        print(f"\n--- Iteration {generation+1}/{generations} ---")
+        gen_start = time.perf_counter()
+        print(f"\n=============================================")
+        print(f"\nIteration {generation+1}/{generations}")
         population = [param_vector + sigma * np.random.randn(num_params) for _ in range(population_size)]
-        #with timer_context('Evaluate Parallel'):
         rewards, kills, coins, distance, levels = evaluate_population(agent, population)
-        new_population = []
 
         max_reward_idx = np.argmax(rewards)
         if rewards[max_reward_idx] > best_reward:
@@ -93,10 +95,18 @@ def random_search(population_size=100, generations=250, sigma=0.5, seed=None):
 
         # Logging
         best_idx = np.argmax(rewards)
-        print(f"Iteration {generation + 1}: Best Reward = {rewards.max():.3f} | Mean Reward = {rewards.mean():.3f}")
+        print(f"Best Reward = {rewards.max():.3f} | Mean Reward = {rewards.mean():.3f}")
         print(f"  Best: Kills={kills[best_idx]}  Coins={coins[best_idx]}  Distance={distance[best_idx]:.1f}  Levels completed={levels[best_idx]}")
         best_rewards.append(rewards.max())
         mean_rewards.append(rewards.mean())
+
+        gen_elapsed = time.perf_counter() - gen_start
+        generation_times.append(gen_elapsed)
+        print(f"\nIteration {generation + 1} time: {gen_elapsed:.3f}s")
+        print(f"Total so far: {time.perf_counter() - total_start:.3f}s")
+        print(f"Mean/iter: {np.mean(generation_times):.3f}s")
+        print(f"Std/iter: {np.std(generation_times):.3f}s")
+
     make_evolution_plot(best_rewards, mean_rewards, "RS", True)
     
 

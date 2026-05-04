@@ -4,11 +4,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-# This script runs mario_ga_search_mlp.py for 
-# multiple seeds, optionally continuing on error.
+# This script runs mario_ga_search_mlp.py (default) or mario_random_search_mlp.py
+# for multiple seeds, optionally continuing on error.
 # Usage:
 # python run_experiments.py 42 123 999
 # TASK=move_forward python run_experiments.py 42 123 999 2024 0
+# METHOD=random TASK=hunter python run_experiments.py 42 123 999 2024 0
 # TASK=move_forward python run_experiments.py 42 123 999 2024 0 --continue-on-error
 
 def parse_args():
@@ -16,6 +17,7 @@ def parse_args():
 		description=(
 			"Run mario_ga_search_mlp.py for multiple seeds. "
 			"If TASK=move_forward, runs move_forward; otherwise runs hunter."
+			"If METHOD=random, runs mario_random_search_mlp.py instead of the GA version. "
 		)
 	)
 	parser.add_argument(
@@ -39,15 +41,25 @@ def resolve_task_mode():
 	return "hunter"
 
 
+def resolve_method():
+	method = os.environ.get("METHOD", "ga").lower()
+	if method == "random":
+		return "random"
+	return "ga"
+
+
 def main():
 	args = parse_args()
 
 	script_dir = Path(__file__).resolve().parent
-	target_script = script_dir / "mario_ga_search_mlp.py"
+	method = resolve_method()
+	script_name = "mario_random_search_mlp.py" if method == "random" else "mario_ga_search_mlp.py"
+	target_script = script_dir / script_name
 	if not target_script.exists():
 		raise FileNotFoundError(f"Cannot find target script: {target_script}")
 
 	mode = resolve_task_mode()
+	print(f"[run_experiments] Method: {method}")
 	print(f"[run_experiments] Mode: {mode}")
 	print(f"[run_experiments] Seeds: {args.seeds}")
 
