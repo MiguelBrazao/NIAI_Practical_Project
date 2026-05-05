@@ -1,0 +1,79 @@
+Random_Search_Hunter_Evaluate_best_agents
+
+python evaluate_best_agent.py data/mlp_best_agents/random_search_hunter_seed_0_99087.285.pkl
+=== Per-Level Results ===
+  Level 0: DIED  |  Reward=99087.285  |  Kills=1  |  Coins=25  |  Distance=1942.9
+  Level 1: DIED  |  Reward=86483.069  |  Kills=1  |  Coins=0  |  Distance=428.1
+  Level 2: DIED  |  Reward=322794.103  |  Kills=1  |  Coins=0  |  Distance=712.6
+
+Died on level(s): [0, 1, 2]
+
+=== Contiguous Survival Total (levels none) ===
+  Levels: 0  |  Reward=0.000  |  Kills=0  |  Coins=0  |  Distance=0.0
+
+=== Grand Total (all levels) ===
+  Levels completed: 0  |  Reward=508364.456  |  Kills=3  |  Coins=25  |  Distance=3083.6
+
+----------------------------------------
+
+python evaluate_best_agent.py data/mlp_best_agents/random_search_hunter_seed_42_386586.000.pkl
+=== Per-Level Results ===
+  Level 0: WIN   |  Reward=117504.000  |  Kills=1  |  Coins=18  |  Distance=2304.0
+  Level 1: DIED  |  Reward=269082.000  |  Kills=2  |  Coins=4  |  Distance=891.0
+  Level 2: DIED  |  Reward=224299.007  |  Kills=0  |  Coins=0  |  Distance=495.1
+
+Died on level(s): [1, 2]
+
+=== Contiguous Survival Total (levels 0–0) ===
+  Levels: 1  |  Reward=117504.000  |  Kills=1  |  Coins=18  |  Distance=2304.0
+
+=== Grand Total (all levels) ===
+  Levels completed: 1  |  Reward=610885.007  |  Kills=3  |  Coins=22  |  Distance=3690.1
+
+----------------------------------------
+
+python evaluate_best_agent.py data/mlp_best_agents/random_search_hunter_seed_123_99541.871.pkl
+=== Per-Level Results ===
+  Level 0: DIED  |  Reward=99541.871  |  Kills=1  |  Coins=8  |  Distance=1951.8
+  Level 1: DIED  |  Reward=53346.000  |  Kills=0  |  Coins=0  |  Distance=523.0
+  Level 2: DIED  |  Reward=129562.802  |  Kills=1  |  Coins=0  |  Distance=427.6
+
+Died on level(s): [0, 1, 2]
+
+=== Contiguous Survival Total (levels none) ===
+  Levels: 0  |  Reward=0.000  |  Kills=0  |  Coins=0  |  Distance=0.0
+
+=== Grand Total (all levels) ===
+  Levels completed: 0  |  Reward=282450.673  |  Kills=2  |  Coins=8  |  Distance=2902.4
+
+----------------------------------------
+
+python evaluate_best_agent.py data/mlp_best_agents/random_search_hunter_seed_999_203987.069.pkl
+=== Per-Level Results ===
+  Level 0: WIN   |  Reward=117504.000  |  Kills=1  |  Coins=31  |  Distance=2304.0
+  Level 1: DIED  |  Reward=86483.069  |  Kills=1  |  Coins=0  |  Distance=428.1
+  Level 2: DIED  |  Reward=229671.000  |  Kills=1  |  Coins=0  |  Distance=507.0
+
+Died on level(s): [1, 2]
+
+=== Contiguous Survival Total (levels 0–0) ===
+  Levels: 1  |  Reward=117504.000  |  Kills=1  |  Coins=31  |  Distance=2304.0
+
+=== Grand Total (all levels) ===
+  Levels completed: 1  |  Reward=433658.069  |  Kills=3  |  Coins=31  |  Distance=3239.1
+
+----------------------------------------
+
+python evaluate_best_agent.py data/mlp_best_agents/random_search_hunter_seed_2024_203987.069.pkl
+=== Per-Level Results ===
+  Level 0: WIN   |  Reward=117504.000  |  Kills=1  |  Coins=32  |  Distance=2304.0
+  Level 1: DIED  |  Reward=86483.069  |  Kills=1  |  Coins=0  |  Distance=428.1
+  Level 2: DIED  |  Reward=288168.689  |  Kills=1  |  Coins=0  |  Distance=636.1
+
+Died on level(s): [1, 2]
+
+=== Contiguous Survival Total (levels 0–0) ===
+  Levels: 1  |  Reward=117504.000  |  Kills=1  |  Coins=32  |  Distance=2304.0
+
+=== Grand Total (all levels) ===
+  Levels completed: 1  |  Reward=492155.758  |  Kills=3  |  Coins=32  |  Distance=3368.3
