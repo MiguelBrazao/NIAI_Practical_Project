@@ -1,0 +1,2761 @@
+
+=============================================
+
+MOVE FORWARD Random Search with MLP Agent
+
+=============================================
+
+Seed: 42
+Generations: 250
+Population Size: 100
+Sigma: 0.5
+
+=============================================
+
+Iteration 1/250
+Best Reward = 300.134 | Mean Reward = 90.318
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 1 time: 48.895s
+Total so far: 48.895s
+Mean/iter: 48.895s
+Std/iter: 0.000s
+
+=============================================
+
+Iteration 2/250
+Best Reward = 364.134 | Mean Reward = 75.653
+  Best: Kills=0  Coins=2  Distance=364.1  Levels completed=0
+
+Iteration 2 time: 48.399s
+Total so far: 97.295s
+Mean/iter: 48.647s
+Std/iter: 0.248s
+
+=============================================
+
+Iteration 3/250
+Best Reward = 300.134 | Mean Reward = 94.570
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 3 time: 47.839s
+Total so far: 145.133s
+Mean/iter: 48.378s
+Std/iter: 0.432s
+
+=============================================
+
+Iteration 4/250
+Best Reward = 1883.600 | Mean Reward = 88.266
+  Best: Kills=1  Coins=8  Distance=1883.6  Levels completed=0
+
+Iteration 4 time: 48.028s
+Total so far: 193.162s
+Mean/iter: 48.290s
+Std/iter: 0.403s
+
+=============================================
+
+Iteration 5/250
+Best Reward = 364.134 | Mean Reward = 106.217
+  Best: Kills=0  Coins=2  Distance=364.1  Levels completed=0
+
+Iteration 5 time: 47.795s
+Total so far: 240.956s
+Mean/iter: 48.191s
+Std/iter: 0.412s
+
+=============================================
+
+Iteration 6/250
+Best Reward = 300.134 | Mean Reward = 83.114
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 6 time: 49.027s
+Total so far: 289.984s
+Mean/iter: 48.330s
+Std/iter: 0.488s
+
+=============================================
+
+Iteration 7/250
+Best Reward = 363.000 | Mean Reward = 94.698
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 7 time: 48.834s
+Total so far: 338.818s
+Mean/iter: 48.402s
+Std/iter: 0.485s
+
+=============================================
+
+Iteration 8/250
+Best Reward = 364.134 | Mean Reward = 77.467
+  Best: Kills=0  Coins=1  Distance=364.1  Levels completed=0
+
+Iteration 8 time: 47.537s
+Total so far: 386.355s
+Mean/iter: 48.294s
+Std/iter: 0.536s
+
+=============================================
+
+Iteration 9/250
+Best Reward = 363.000 | Mean Reward = 89.896
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 9 time: 44.180s
+Total so far: 430.535s
+Mean/iter: 47.837s
+Std/iter: 1.388s
+
+=============================================
+
+Iteration 10/250
+Best Reward = 364.134 | Mean Reward = 89.531
+  Best: Kills=0  Coins=0  Distance=364.1  Levels completed=0
+
+Iteration 10 time: 46.089s
+Total so far: 476.624s
+Mean/iter: 47.662s
+Std/iter: 1.418s
+
+=============================================
+
+Iteration 11/250
+Best Reward = 349.357 | Mean Reward = 84.628
+  Best: Kills=0  Coins=1  Distance=349.4  Levels completed=0
+
+Iteration 11 time: 43.904s
+Total so far: 520.528s
+Mean/iter: 47.321s
+Std/iter: 1.731s
+
+=============================================
+
+Iteration 12/250
+Best Reward = 300.134 | Mean Reward = 89.755
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 12 time: 42.389s
+Total so far: 562.917s
+Mean/iter: 46.910s
+Std/iter: 2.146s
+
+=============================================
+
+Iteration 13/250
+Best Reward = 299.000 | Mean Reward = 93.824
+  Best: Kills=0  Coins=3  Distance=299.0  Levels completed=0
+
+Iteration 13 time: 42.489s
+Total so far: 605.407s
+Mean/iter: 46.570s
+Std/iter: 2.374s
+
+=============================================
+
+Iteration 14/250
+Best Reward = 363.000 | Mean Reward = 88.125
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 14 time: 42.302s
+Total so far: 647.709s
+Mean/iter: 46.265s
+Std/iter: 2.538s
+
+=============================================
+
+Iteration 15/250
+Best Reward = 363.000 | Mean Reward = 85.621
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 15 time: 41.989s
+Total so far: 689.699s
+Mean/iter: 45.980s
+Std/iter: 2.674s
+
+=============================================
+
+Iteration 16/250
+Best Reward = 300.134 | Mean Reward = 99.476
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 16 time: 42.545s
+Total so far: 732.244s
+Mean/iter: 45.765s
+Std/iter: 2.719s
+
+=============================================
+
+Iteration 17/250
+Best Reward = 363.000 | Mean Reward = 78.818
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 17 time: 44.464s
+Total so far: 776.708s
+Mean/iter: 45.689s
+Std/iter: 2.656s
+
+=============================================
+
+Iteration 18/250
+Best Reward = 300.134 | Mean Reward = 89.744
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 18 time: 43.159s
+Total so far: 819.867s
+Mean/iter: 45.548s
+Std/iter: 2.645s
+
+=============================================
+
+Iteration 19/250
+Best Reward = 300.134 | Mean Reward = 75.674
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 19 time: 42.435s
+Total so far: 862.302s
+Mean/iter: 45.384s
+Std/iter: 2.667s
+
+=============================================
+
+Iteration 20/250
+Best Reward = 300.134 | Mean Reward = 93.609
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 20 time: 43.091s
+Total so far: 905.393s
+Mean/iter: 45.270s
+Std/iter: 2.647s
+
+=============================================
+
+Iteration 21/250
+Best Reward = 300.134 | Mean Reward = 65.970
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 21 time: 42.412s
+Total so far: 947.805s
+Mean/iter: 45.133s
+Std/iter: 2.654s
+
+=============================================
+
+Iteration 22/250
+Best Reward = 300.134 | Mean Reward = 71.987
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 22 time: 41.572s
+Total so far: 989.378s
+Mean/iter: 44.972s
+Std/iter: 2.697s
+
+=============================================
+
+Iteration 23/250
+Best Reward = 363.000 | Mean Reward = 94.713
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 23 time: 41.757s
+Total so far: 1031.135s
+Mean/iter: 44.832s
+Std/iter: 2.718s
+
+=============================================
+
+Iteration 24/250
+Best Reward = 363.000 | Mean Reward = 80.438
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 24 time: 41.726s
+Total so far: 1072.861s
+Mean/iter: 44.702s
+Std/iter: 2.732s
+
+=============================================
+
+Iteration 25/250
+Best Reward = 300.134 | Mean Reward = 61.972
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 25 time: 41.414s
+Total so far: 1114.275s
+Mean/iter: 44.571s
+Std/iter: 2.753s
+
+=============================================
+
+Iteration 26/250
+Best Reward = 300.134 | Mean Reward = 99.487
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 26 time: 41.916s
+Total so far: 1156.192s
+Mean/iter: 44.469s
+Std/iter: 2.748s
+
+=============================================
+
+Iteration 27/250
+Best Reward = 299.000 | Mean Reward = 80.096
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 27 time: 41.505s
+Total so far: 1197.697s
+Mean/iter: 44.359s
+Std/iter: 2.754s
+
+=============================================
+
+Iteration 28/250
+Best Reward = 300.134 | Mean Reward = 91.880
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 28 time: 41.877s
+Total so far: 1239.574s
+Mean/iter: 44.270s
+Std/iter: 2.743s
+
+=============================================
+
+Iteration 29/250
+Best Reward = 300.134 | Mean Reward = 84.255
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 29 time: 41.363s
+Total so far: 1280.937s
+Mean/iter: 44.170s
+Std/iter: 2.747s
+
+=============================================
+
+Iteration 30/250
+Best Reward = 363.000 | Mean Reward = 94.891
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 30 time: 42.437s
+Total so far: 1323.373s
+Mean/iter: 44.112s
+Std/iter: 2.719s
+
+=============================================
+
+Iteration 31/250
+Best Reward = 300.134 | Mean Reward = 95.274
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 31 time: 43.313s
+Total so far: 1366.686s
+Mean/iter: 44.087s
+Std/iter: 2.678s
+
+=============================================
+
+Iteration 32/250
+Best Reward = 574.066 | Mean Reward = 90.680
+  Best: Kills=0  Coins=12  Distance=574.1  Levels completed=0
+
+Iteration 32 time: 44.533s
+Total so far: 1411.219s
+Mean/iter: 44.100s
+Std/iter: 2.637s
+
+=============================================
+
+Iteration 33/250
+Best Reward = 300.134 | Mean Reward = 87.324
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 33 time: 42.986s
+Total so far: 1454.205s
+Mean/iter: 44.067s
+Std/iter: 2.604s
+
+=============================================
+
+Iteration 34/250
+Best Reward = 363.000 | Mean Reward = 85.155
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 34 time: 44.254s
+Total so far: 1498.459s
+Mean/iter: 44.072s
+Std/iter: 2.566s
+
+=============================================
+
+Iteration 35/250
+Best Reward = 363.000 | Mean Reward = 78.107
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 35 time: 44.843s
+Total so far: 1543.302s
+Mean/iter: 44.094s
+Std/iter: 2.532s
+
+=============================================
+
+Iteration 36/250
+Best Reward = 300.134 | Mean Reward = 84.335
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 36 time: 44.365s
+Total so far: 1587.667s
+Mean/iter: 44.102s
+Std/iter: 2.497s
+
+=============================================
+
+Iteration 37/250
+Best Reward = 300.134 | Mean Reward = 91.962
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 37 time: 44.447s
+Total so far: 1632.114s
+Mean/iter: 44.111s
+Std/iter: 2.464s
+
+=============================================
+
+Iteration 38/250
+Best Reward = 300.134 | Mean Reward = 91.074
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 38 time: 44.490s
+Total so far: 1676.604s
+Mean/iter: 44.121s
+Std/iter: 2.432s
+
+=============================================
+
+Iteration 39/250
+Best Reward = 363.000 | Mean Reward = 104.244
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 39 time: 42.728s
+Total so far: 1719.332s
+Mean/iter: 44.085s
+Std/iter: 2.410s
+
+=============================================
+
+Iteration 40/250
+Best Reward = 300.134 | Mean Reward = 83.092
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 40 time: 44.159s
+Total so far: 1763.491s
+Mean/iter: 44.087s
+Std/iter: 2.380s
+
+=============================================
+
+Iteration 41/250
+Best Reward = 363.000 | Mean Reward = 89.565
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 41 time: 44.386s
+Total so far: 1807.878s
+Mean/iter: 44.094s
+Std/iter: 2.351s
+
+=============================================
+
+Iteration 42/250
+Best Reward = 300.134 | Mean Reward = 100.251
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 42 time: 44.865s
+Total so far: 1852.743s
+Mean/iter: 44.113s
+Std/iter: 2.326s
+
+=============================================
+
+Iteration 43/250
+Best Reward = 300.134 | Mean Reward = 80.246
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 43 time: 44.139s
+Total so far: 1896.882s
+Mean/iter: 44.113s
+Std/iter: 2.299s
+
+=============================================
+
+Iteration 44/250
+Best Reward = 300.134 | Mean Reward = 87.441
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 44 time: 44.933s
+Total so far: 1941.815s
+Mean/iter: 44.132s
+Std/iter: 2.276s
+
+=============================================
+
+Iteration 45/250
+Best Reward = 363.000 | Mean Reward = 107.167
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 45 time: 45.985s
+Total so far: 1987.800s
+Mean/iter: 44.173s
+Std/iter: 2.267s
+
+=============================================
+
+Iteration 46/250
+Best Reward = 363.000 | Mean Reward = 103.515
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 46 time: 45.386s
+Total so far: 2033.187s
+Mean/iter: 44.200s
+Std/iter: 2.249s
+
+=============================================
+
+Iteration 47/250
+Best Reward = 300.134 | Mean Reward = 69.180
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 47 time: 45.942s
+Total so far: 2079.128s
+Mean/iter: 44.237s
+Std/iter: 2.239s
+
+=============================================
+
+Iteration 48/250
+Best Reward = 324.130 | Mean Reward = 69.350
+  Best: Kills=0  Coins=3  Distance=324.1  Levels completed=0
+
+Iteration 48 time: 45.312s
+Total so far: 2124.441s
+Mean/iter: 44.259s
+Std/iter: 2.221s
+
+=============================================
+
+Iteration 49/250
+Best Reward = 363.000 | Mean Reward = 80.820
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 49 time: 45.532s
+Total so far: 2169.973s
+Mean/iter: 44.285s
+Std/iter: 2.206s
+
+=============================================
+
+Iteration 50/250
+Best Reward = 300.134 | Mean Reward = 77.928
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 50 time: 45.489s
+Total so far: 2215.462s
+Mean/iter: 44.309s
+Std/iter: 2.190s
+
+=============================================
+
+Iteration 51/250
+Best Reward = 597.165 | Mean Reward = 90.260
+  Best: Kills=0  Coins=3  Distance=597.2  Levels completed=0
+
+Iteration 51 time: 43.205s
+Total so far: 2258.667s
+Mean/iter: 44.287s
+Std/iter: 2.174s
+
+=============================================
+
+Iteration 52/250
+Best Reward = 364.134 | Mean Reward = 67.291
+  Best: Kills=0  Coins=4  Distance=364.1  Levels completed=0
+
+Iteration 52 time: 45.162s
+Total so far: 2303.829s
+Mean/iter: 44.304s
+Std/iter: 2.156s
+
+=============================================
+
+Iteration 53/250
+Best Reward = 363.000 | Mean Reward = 77.610
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 53 time: 43.690s
+Total so far: 2347.519s
+Mean/iter: 44.293s
+Std/iter: 2.137s
+
+=============================================
+
+Iteration 54/250
+Best Reward = 363.000 | Mean Reward = 90.754
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 54 time: 43.361s
+Total so far: 2390.880s
+Mean/iter: 44.275s
+Std/iter: 2.121s
+
+=============================================
+
+Iteration 55/250
+Best Reward = 300.134 | Mean Reward = 66.831
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 55 time: 44.502s
+Total so far: 2435.382s
+Mean/iter: 44.280s
+Std/iter: 2.102s
+
+=============================================
+
+Iteration 56/250
+Best Reward = 619.000 | Mean Reward = 73.960
+  Best: Kills=0  Coins=3  Distance=619.0  Levels completed=0
+
+Iteration 56 time: 45.117s
+Total so far: 2480.500s
+Mean/iter: 44.295s
+Std/iter: 2.086s
+
+=============================================
+
+Iteration 57/250
+Best Reward = 299.000 | Mean Reward = 86.266
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 57 time: 45.881s
+Total so far: 2526.381s
+Mean/iter: 44.322s
+Std/iter: 2.078s
+
+=============================================
+
+Iteration 58/250
+Best Reward = 300.134 | Mean Reward = 93.754
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 58 time: 46.185s
+Total so far: 2572.566s
+Mean/iter: 44.354s
+Std/iter: 2.075s
+
+=============================================
+
+Iteration 59/250
+Best Reward = 363.000 | Mean Reward = 106.630
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 59 time: 45.859s
+Total so far: 2618.426s
+Mean/iter: 44.380s
+Std/iter: 2.066s
+
+=============================================
+
+Iteration 60/250
+Best Reward = 300.134 | Mean Reward = 79.007
+  Best: Kills=0  Coins=4  Distance=300.1  Levels completed=0
+
+Iteration 60 time: 44.726s
+Total so far: 2663.152s
+Mean/iter: 44.386s
+Std/iter: 2.049s
+
+=============================================
+
+Iteration 61/250
+Best Reward = 363.000 | Mean Reward = 96.997
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 61 time: 44.471s
+Total so far: 2707.623s
+Mean/iter: 44.387s
+Std/iter: 2.032s
+
+=============================================
+
+Iteration 62/250
+Best Reward = 619.000 | Mean Reward = 97.620
+  Best: Kills=0  Coins=6  Distance=619.0  Levels completed=0
+
+Iteration 62 time: 43.870s
+Total so far: 2751.493s
+Mean/iter: 44.379s
+Std/iter: 2.017s
+
+=============================================
+
+Iteration 63/250
+Best Reward = 363.000 | Mean Reward = 92.093
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 63 time: 44.793s
+Total so far: 2796.286s
+Mean/iter: 44.385s
+Std/iter: 2.002s
+
+=============================================
+
+Iteration 64/250
+Best Reward = 300.134 | Mean Reward = 92.541
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 64 time: 44.548s
+Total so far: 2840.834s
+Mean/iter: 44.388s
+Std/iter: 1.986s
+
+=============================================
+
+Iteration 65/250
+Best Reward = 299.000 | Mean Reward = 82.537
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 65 time: 45.325s
+Total so far: 2886.159s
+Mean/iter: 44.402s
+Std/iter: 1.974s
+
+=============================================
+
+Iteration 66/250
+Best Reward = 363.000 | Mean Reward = 82.856
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 66 time: 46.806s
+Total so far: 2932.965s
+Mean/iter: 44.439s
+Std/iter: 1.981s
+
+=============================================
+
+Iteration 67/250
+Best Reward = 364.134 | Mean Reward = 86.370
+  Best: Kills=0  Coins=2  Distance=364.1  Levels completed=0
+
+Iteration 67 time: 45.300s
+Total so far: 2978.266s
+Mean/iter: 44.452s
+Std/iter: 1.969s
+
+=============================================
+
+Iteration 68/250
+Best Reward = 364.134 | Mean Reward = 84.757
+  Best: Kills=0  Coins=1  Distance=364.1  Levels completed=0
+
+Iteration 68 time: 45.210s
+Total so far: 3023.476s
+Mean/iter: 44.463s
+Std/iter: 1.956s
+
+=============================================
+
+Iteration 69/250
+Best Reward = 363.000 | Mean Reward = 107.293
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 69 time: 44.758s
+Total so far: 3068.234s
+Mean/iter: 44.467s
+Std/iter: 1.943s
+
+=============================================
+
+Iteration 70/250
+Best Reward = 300.134 | Mean Reward = 76.441
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 70 time: 45.828s
+Total so far: 3114.063s
+Mean/iter: 44.486s
+Std/iter: 1.935s
+
+=============================================
+
+Iteration 71/250
+Best Reward = 300.134 | Mean Reward = 83.575
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 71 time: 45.458s
+Total so far: 3159.521s
+Mean/iter: 44.500s
+Std/iter: 1.925s
+
+=============================================
+
+Iteration 72/250
+Best Reward = 300.134 | Mean Reward = 89.265
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 72 time: 45.190s
+Total so far: 3204.711s
+Mean/iter: 44.510s
+Std/iter: 1.913s
+
+=============================================
+
+Iteration 73/250
+Best Reward = 299.000 | Mean Reward = 74.076
+  Best: Kills=0  Coins=1  Distance=299.0  Levels completed=0
+
+Iteration 73 time: 45.597s
+Total so far: 3250.308s
+Mean/iter: 44.525s
+Std/iter: 1.904s
+
+=============================================
+
+Iteration 74/250
+Best Reward = 300.134 | Mean Reward = 73.290
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 74 time: 44.613s
+Total so far: 3294.922s
+Mean/iter: 44.526s
+Std/iter: 1.892s
+
+=============================================
+
+Iteration 75/250
+Best Reward = 300.134 | Mean Reward = 83.469
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 75 time: 44.300s
+Total so far: 3339.222s
+Mean/iter: 44.523s
+Std/iter: 1.879s
+
+=============================================
+
+Iteration 76/250
+Best Reward = 363.000 | Mean Reward = 84.494
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 76 time: 44.062s
+Total so far: 3383.284s
+Mean/iter: 44.517s
+Std/iter: 1.867s
+
+=============================================
+
+Iteration 77/250
+Best Reward = 363.000 | Mean Reward = 82.013
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 77 time: 43.509s
+Total so far: 3426.793s
+Mean/iter: 44.504s
+Std/iter: 1.859s
+
+=============================================
+
+Iteration 78/250
+Best Reward = 300.134 | Mean Reward = 87.743
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 78 time: 43.506s
+Total so far: 3470.299s
+Mean/iter: 44.491s
+Std/iter: 1.850s
+
+=============================================
+
+Iteration 79/250
+Best Reward = 363.000 | Mean Reward = 80.708
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 79 time: 43.911s
+Total so far: 3514.211s
+Mean/iter: 44.484s
+Std/iter: 1.840s
+
+=============================================
+
+Iteration 80/250
+Best Reward = 597.361 | Mean Reward = 88.328
+  Best: Kills=0  Coins=4  Distance=597.4  Levels completed=0
+
+Iteration 80 time: 43.546s
+Total so far: 3557.756s
+Mean/iter: 44.472s
+Std/iter: 1.831s
+
+=============================================
+
+Iteration 81/250
+Best Reward = 318.912 | Mean Reward = 85.139
+  Best: Kills=0  Coins=1  Distance=318.9  Levels completed=0
+
+Iteration 81 time: 44.767s
+Total so far: 3602.524s
+Mean/iter: 44.475s
+Std/iter: 1.820s
+
+=============================================
+
+Iteration 82/250
+Best Reward = 363.000 | Mean Reward = 94.264
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 82 time: 46.162s
+Total so far: 3648.687s
+Mean/iter: 44.496s
+Std/iter: 1.818s
+
+=============================================
+
+Iteration 83/250
+Best Reward = 363.000 | Mean Reward = 76.223
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 83 time: 44.713s
+Total so far: 3693.400s
+Mean/iter: 44.499s
+Std/iter: 1.807s
+
+=============================================
+
+Iteration 84/250
+Best Reward = 363.000 | Mean Reward = 90.695
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 84 time: 44.718s
+Total so far: 3738.118s
+Mean/iter: 44.501s
+Std/iter: 1.797s
+
+=============================================
+
+Iteration 85/250
+Best Reward = 300.134 | Mean Reward = 77.611
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 85 time: 44.621s
+Total so far: 3782.740s
+Mean/iter: 44.503s
+Std/iter: 1.786s
+
+=============================================
+
+Iteration 86/250
+Best Reward = 363.000 | Mean Reward = 113.049
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 86 time: 43.831s
+Total so far: 3826.571s
+Mean/iter: 44.495s
+Std/iter: 1.777s
+
+=============================================
+
+Iteration 87/250
+Best Reward = 363.000 | Mean Reward = 82.944
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 87 time: 45.672s
+Total so far: 3872.242s
+Mean/iter: 44.508s
+Std/iter: 1.772s
+
+=============================================
+
+Iteration 88/250
+Best Reward = 300.134 | Mean Reward = 84.297
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 88 time: 44.631s
+Total so far: 3916.873s
+Mean/iter: 44.510s
+Std/iter: 1.761s
+
+=============================================
+
+Iteration 89/250
+Best Reward = 300.134 | Mean Reward = 80.182
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 89 time: 44.682s
+Total so far: 3961.555s
+Mean/iter: 44.512s
+Std/iter: 1.752s
+
+=============================================
+
+Iteration 90/250
+Best Reward = 311.101 | Mean Reward = 92.958
+  Best: Kills=0  Coins=4  Distance=311.1  Levels completed=0
+
+Iteration 90 time: 44.312s
+Total so far: 4005.867s
+Mean/iter: 44.510s
+Std/iter: 1.742s
+
+=============================================
+
+Iteration 91/250
+Best Reward = 300.134 | Mean Reward = 90.418
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 91 time: 44.758s
+Total so far: 4050.626s
+Mean/iter: 44.512s
+Std/iter: 1.733s
+
+=============================================
+
+Iteration 92/250
+Best Reward = 352.550 | Mean Reward = 83.599
+  Best: Kills=0  Coins=1  Distance=352.5  Levels completed=0
+
+Iteration 92 time: 44.371s
+Total so far: 4094.996s
+Mean/iter: 44.511s
+Std/iter: 1.723s
+
+=============================================
+
+Iteration 93/250
+Best Reward = 300.134 | Mean Reward = 88.052
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 93 time: 45.231s
+Total so far: 4140.228s
+Mean/iter: 44.518s
+Std/iter: 1.716s
+
+=============================================
+
+Iteration 94/250
+Best Reward = 364.134 | Mean Reward = 94.325
+  Best: Kills=0  Coins=2  Distance=364.1  Levels completed=0
+
+Iteration 94 time: 44.691s
+Total so far: 4184.919s
+Mean/iter: 44.520s
+Std/iter: 1.707s
+
+=============================================
+
+Iteration 95/250
+Best Reward = 300.134 | Mean Reward = 95.149
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 95 time: 44.200s
+Total so far: 4229.119s
+Mean/iter: 44.517s
+Std/iter: 1.698s
+
+=============================================
+
+Iteration 96/250
+Best Reward = 300.134 | Mean Reward = 81.519
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 96 time: 45.954s
+Total so far: 4275.073s
+Mean/iter: 44.532s
+Std/iter: 1.695s
+
+=============================================
+
+Iteration 97/250
+Best Reward = 300.134 | Mean Reward = 82.768
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 97 time: 44.768s
+Total so far: 4319.841s
+Mean/iter: 44.534s
+Std/iter: 1.687s
+
+=============================================
+
+Iteration 98/250
+Best Reward = 300.134 | Mean Reward = 72.848
+  Best: Kills=0  Coins=0  Distance=300.1  Levels completed=0
+
+Iteration 98 time: 44.466s
+Total so far: 4364.308s
+Mean/iter: 44.534s
+Std/iter: 1.678s
+
+=============================================
+
+Iteration 99/250
+Best Reward = 300.134 | Mean Reward = 84.291
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 99 time: 44.323s
+Total so far: 4408.631s
+Mean/iter: 44.531s
+Std/iter: 1.670s
+
+=============================================
+
+Iteration 100/250
+Best Reward = 300.134 | Mean Reward = 81.455
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 100 time: 43.209s
+Total so far: 4451.840s
+Mean/iter: 44.518s
+Std/iter: 1.667s
+
+=============================================
+
+Iteration 101/250
+Best Reward = 299.000 | Mean Reward = 77.849
+  Best: Kills=0  Coins=4  Distance=299.0  Levels completed=0
+
+Iteration 101 time: 43.204s
+Total so far: 4495.044s
+Mean/iter: 44.505s
+Std/iter: 1.663s
+
+=============================================
+
+Iteration 102/250
+Best Reward = 300.134 | Mean Reward = 93.746
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 102 time: 42.648s
+Total so far: 4537.693s
+Mean/iter: 44.487s
+Std/iter: 1.665s
+
+=============================================
+
+Iteration 103/250
+Best Reward = 300.134 | Mean Reward = 82.509
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 103 time: 44.702s
+Total so far: 4582.395s
+Mean/iter: 44.489s
+Std/iter: 1.657s
+
+=============================================
+
+Iteration 104/250
+Best Reward = 300.134 | Mean Reward = 106.234
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 104 time: 43.959s
+Total so far: 4626.354s
+Mean/iter: 44.484s
+Std/iter: 1.650s
+
+=============================================
+
+Iteration 105/250
+Best Reward = 363.000 | Mean Reward = 109.912
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 105 time: 44.326s
+Total so far: 4670.680s
+Mean/iter: 44.483s
+Std/iter: 1.642s
+
+=============================================
+
+Iteration 106/250
+Best Reward = 364.134 | Mean Reward = 79.742
+  Best: Kills=0  Coins=4  Distance=364.1  Levels completed=0
+
+Iteration 106 time: 45.225s
+Total so far: 4715.906s
+Mean/iter: 44.490s
+Std/iter: 1.636s
+
+=============================================
+
+Iteration 107/250
+Best Reward = 299.000 | Mean Reward = 71.067
+  Best: Kills=0  Coins=1  Distance=299.0  Levels completed=0
+
+Iteration 107 time: 44.998s
+Total so far: 4760.904s
+Mean/iter: 44.494s
+Std/iter: 1.629s
+
+=============================================
+
+Iteration 108/250
+Best Reward = 300.134 | Mean Reward = 95.745
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 108 time: 45.171s
+Total so far: 4806.075s
+Mean/iter: 44.501s
+Std/iter: 1.623s
+
+=============================================
+
+Iteration 109/250
+Best Reward = 299.000 | Mean Reward = 84.792
+  Best: Kills=0  Coins=0  Distance=299.0  Levels completed=0
+
+Iteration 109 time: 44.688s
+Total so far: 4850.764s
+Mean/iter: 44.502s
+Std/iter: 1.616s
+
+=============================================
+
+Iteration 110/250
+Best Reward = 363.000 | Mean Reward = 84.653
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 110 time: 43.999s
+Total so far: 4894.762s
+Mean/iter: 44.498s
+Std/iter: 1.609s
+
+=============================================
+
+Iteration 111/250
+Best Reward = 300.134 | Mean Reward = 58.998
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 111 time: 44.373s
+Total so far: 4939.135s
+Mean/iter: 44.497s
+Std/iter: 1.602s
+
+=============================================
+
+Iteration 112/250
+Best Reward = 300.134 | Mean Reward = 65.448
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 112 time: 44.733s
+Total so far: 4983.868s
+Mean/iter: 44.499s
+Std/iter: 1.595s
+
+=============================================
+
+Iteration 113/250
+Best Reward = 300.134 | Mean Reward = 85.692
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 113 time: 44.521s
+Total so far: 5028.390s
+Mean/iter: 44.499s
+Std/iter: 1.588s
+
+=============================================
+
+Iteration 114/250
+Best Reward = 363.000 | Mean Reward = 105.987
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 114 time: 43.713s
+Total so far: 5072.103s
+Mean/iter: 44.492s
+Std/iter: 1.582s
+
+=============================================
+
+Iteration 115/250
+Best Reward = 1970.840 | Mean Reward = 117.820
+  Best: Kills=0  Coins=7  Distance=1970.8  Levels completed=0
+
+Iteration 115 time: 44.766s
+Total so far: 5116.869s
+Mean/iter: 44.494s
+Std/iter: 1.576s
+
+=============================================
+
+Iteration 116/250
+Best Reward = 363.000 | Mean Reward = 82.222
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 116 time: 44.660s
+Total so far: 5161.529s
+Mean/iter: 44.496s
+Std/iter: 1.569s
+
+=============================================
+
+Iteration 117/250
+Best Reward = 363.000 | Mean Reward = 86.882
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 117 time: 44.644s
+Total so far: 5206.173s
+Mean/iter: 44.497s
+Std/iter: 1.562s
+
+=============================================
+
+Iteration 118/250
+Best Reward = 300.134 | Mean Reward = 111.834
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 118 time: 44.772s
+Total so far: 5250.945s
+Mean/iter: 44.499s
+Std/iter: 1.556s
+
+=============================================
+
+Iteration 119/250
+Best Reward = 363.000 | Mean Reward = 80.236
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 119 time: 45.092s
+Total so far: 5296.037s
+Mean/iter: 44.504s
+Std/iter: 1.550s
+
+=============================================
+
+Iteration 120/250
+Best Reward = 300.134 | Mean Reward = 94.361
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 120 time: 45.319s
+Total so far: 5341.356s
+Mean/iter: 44.511s
+Std/iter: 1.545s
+
+=============================================
+
+Iteration 121/250
+Best Reward = 299.000 | Mean Reward = 78.739
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 121 time: 46.842s
+Total so far: 5388.198s
+Mean/iter: 44.530s
+Std/iter: 1.553s
+
+=============================================
+
+Iteration 122/250
+Best Reward = 300.134 | Mean Reward = 95.249
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 122 time: 43.104s
+Total so far: 5431.301s
+Mean/iter: 44.519s
+Std/iter: 1.552s
+
+=============================================
+
+Iteration 123/250
+Best Reward = 363.000 | Mean Reward = 99.310
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 123 time: 43.525s
+Total so far: 5474.827s
+Mean/iter: 44.511s
+Std/iter: 1.549s
+
+=============================================
+
+Iteration 124/250
+Best Reward = 299.000 | Mean Reward = 97.573
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 124 time: 44.141s
+Total so far: 5518.968s
+Mean/iter: 44.508s
+Std/iter: 1.543s
+
+=============================================
+
+Iteration 125/250
+Best Reward = 363.000 | Mean Reward = 102.891
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 125 time: 43.306s
+Total so far: 5562.274s
+Mean/iter: 44.498s
+Std/iter: 1.540s
+
+=============================================
+
+Iteration 126/250
+Best Reward = 363.000 | Mean Reward = 94.109
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 126 time: 44.172s
+Total so far: 5606.446s
+Mean/iter: 44.495s
+Std/iter: 1.534s
+
+=============================================
+
+Iteration 127/250
+Best Reward = 300.134 | Mean Reward = 89.308
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 127 time: 43.144s
+Total so far: 5649.590s
+Mean/iter: 44.485s
+Std/iter: 1.533s
+
+=============================================
+
+Iteration 128/250
+Best Reward = 300.134 | Mean Reward = 95.679
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 128 time: 43.351s
+Total so far: 5692.940s
+Mean/iter: 44.476s
+Std/iter: 1.530s
+
+=============================================
+
+Iteration 129/250
+Best Reward = 363.000 | Mean Reward = 84.354
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 129 time: 45.594s
+Total so far: 5738.535s
+Mean/iter: 44.485s
+Std/iter: 1.528s
+
+=============================================
+
+Iteration 130/250
+Best Reward = 1951.197 | Mean Reward = 120.679
+  Best: Kills=0  Coins=6  Distance=1951.2  Levels completed=0
+
+Iteration 130 time: 45.324s
+Total so far: 5783.858s
+Mean/iter: 44.491s
+Std/iter: 1.523s
+
+=============================================
+
+Iteration 131/250
+Best Reward = 300.134 | Mean Reward = 89.914
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 131 time: 44.908s
+Total so far: 5828.766s
+Mean/iter: 44.494s
+Std/iter: 1.518s
+
+=============================================
+
+Iteration 132/250
+Best Reward = 300.134 | Mean Reward = 73.471
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 132 time: 44.339s
+Total so far: 5873.105s
+Mean/iter: 44.493s
+Std/iter: 1.512s
+
+=============================================
+
+Iteration 133/250
+Best Reward = 300.134 | Mean Reward = 79.596
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 133 time: 44.698s
+Total so far: 5917.804s
+Mean/iter: 44.495s
+Std/iter: 1.507s
+
+=============================================
+
+Iteration 134/250
+Best Reward = 363.000 | Mean Reward = 94.095
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 134 time: 45.082s
+Total so far: 5962.886s
+Mean/iter: 44.499s
+Std/iter: 1.502s
+
+=============================================
+
+Iteration 135/250
+Best Reward = 1968.552 | Mean Reward = 103.381
+  Best: Kills=0  Coins=29  Distance=1968.6  Levels completed=0
+
+Iteration 135 time: 44.989s
+Total so far: 6007.876s
+Mean/iter: 44.503s
+Std/iter: 1.497s
+
+=============================================
+
+Iteration 136/250
+Best Reward = 364.134 | Mean Reward = 104.174
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 136 time: 45.092s
+Total so far: 6052.968s
+Mean/iter: 44.507s
+Std/iter: 1.492s
+
+=============================================
+
+Iteration 137/250
+Best Reward = 363.000 | Mean Reward = 88.067
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 137 time: 45.049s
+Total so far: 6098.017s
+Mean/iter: 44.511s
+Std/iter: 1.488s
+
+=============================================
+
+Iteration 138/250
+Best Reward = 300.134 | Mean Reward = 90.976
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 138 time: 44.987s
+Total so far: 6143.005s
+Mean/iter: 44.514s
+Std/iter: 1.483s
+
+=============================================
+
+Iteration 139/250
+Best Reward = 300.134 | Mean Reward = 100.421
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 139 time: 44.756s
+Total so far: 6187.761s
+Mean/iter: 44.516s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 140/250
+Best Reward = 316.286 | Mean Reward = 79.830
+  Best: Kills=0  Coins=4  Distance=316.3  Levels completed=0
+
+Iteration 140 time: 45.424s
+Total so far: 6233.184s
+Mean/iter: 44.523s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 141/250
+Best Reward = 300.134 | Mean Reward = 89.229
+  Best: Kills=0  Coins=4  Distance=300.1  Levels completed=0
+
+Iteration 141 time: 45.537s
+Total so far: 6278.721s
+Mean/iter: 44.530s
+Std/iter: 1.471s
+
+=============================================
+
+Iteration 142/250
+Best Reward = 300.134 | Mean Reward = 89.340
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 142 time: 44.977s
+Total so far: 6323.698s
+Mean/iter: 44.533s
+Std/iter: 1.467s
+
+=============================================
+
+Iteration 143/250
+Best Reward = 300.134 | Mean Reward = 85.785
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 143 time: 43.896s
+Total so far: 6367.595s
+Mean/iter: 44.529s
+Std/iter: 1.463s
+
+=============================================
+
+Iteration 144/250
+Best Reward = 300.134 | Mean Reward = 87.579
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 144 time: 44.418s
+Total so far: 6412.013s
+Mean/iter: 44.528s
+Std/iter: 1.458s
+
+=============================================
+
+Iteration 145/250
+Best Reward = 300.134 | Mean Reward = 77.432
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 145 time: 44.324s
+Total so far: 6456.337s
+Mean/iter: 44.526s
+Std/iter: 1.453s
+
+=============================================
+
+Iteration 146/250
+Best Reward = 300.134 | Mean Reward = 66.957
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 146 time: 44.804s
+Total so far: 6501.141s
+Mean/iter: 44.528s
+Std/iter: 1.448s
+
+=============================================
+
+Iteration 147/250
+Best Reward = 300.134 | Mean Reward = 75.971
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 147 time: 43.216s
+Total so far: 6544.357s
+Mean/iter: 44.519s
+Std/iter: 1.447s
+
+=============================================
+
+Iteration 148/250
+Best Reward = 300.134 | Mean Reward = 79.545
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 148 time: 45.367s
+Total so far: 6589.724s
+Mean/iter: 44.525s
+Std/iter: 1.444s
+
+=============================================
+
+Iteration 149/250
+Best Reward = 300.134 | Mean Reward = 90.072
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 149 time: 44.757s
+Total so far: 6634.481s
+Mean/iter: 44.527s
+Std/iter: 1.439s
+
+=============================================
+
+Iteration 150/250
+Best Reward = 3798.000 | Mean Reward = 123.565
+  Best: Kills=1  Coins=13  Distance=3051.0  Levels completed=1
+
+Iteration 150 time: 44.669s
+Total so far: 6679.150s
+Mean/iter: 44.528s
+Std/iter: 1.434s
+
+=============================================
+
+Iteration 151/250
+Best Reward = 363.000 | Mean Reward = 65.811
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 151 time: 44.361s
+Total so far: 6723.511s
+Mean/iter: 44.526s
+Std/iter: 1.429s
+
+=============================================
+
+Iteration 152/250
+Best Reward = 363.000 | Mean Reward = 83.374
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 152 time: 44.284s
+Total so far: 6767.795s
+Mean/iter: 44.525s
+Std/iter: 1.425s
+
+=============================================
+
+Iteration 153/250
+Best Reward = 299.000 | Mean Reward = 73.818
+  Best: Kills=0  Coins=3  Distance=299.0  Levels completed=0
+
+Iteration 153 time: 44.781s
+Total so far: 6812.576s
+Mean/iter: 44.527s
+Std/iter: 1.420s
+
+=============================================
+
+Iteration 154/250
+Best Reward = 300.134 | Mean Reward = 70.313
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 154 time: 43.014s
+Total so far: 6855.590s
+Mean/iter: 44.517s
+Std/iter: 1.421s
+
+=============================================
+
+Iteration 155/250
+Best Reward = 299.000 | Mean Reward = 77.210
+  Best: Kills=0  Coins=1  Distance=299.0  Levels completed=0
+
+Iteration 155 time: 42.952s
+Total so far: 6898.542s
+Mean/iter: 44.507s
+Std/iter: 1.422s
+
+=============================================
+
+Iteration 156/250
+Best Reward = 343.462 | Mean Reward = 93.130
+  Best: Kills=0  Coins=4  Distance=343.5  Levels completed=0
+
+Iteration 156 time: 43.376s
+Total so far: 6941.919s
+Mean/iter: 44.499s
+Std/iter: 1.420s
+
+=============================================
+
+Iteration 157/250
+Best Reward = 363.000 | Mean Reward = 80.310
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 157 time: 42.820s
+Total so far: 6984.739s
+Mean/iter: 44.489s
+Std/iter: 1.422s
+
+=============================================
+
+Iteration 158/250
+Best Reward = 1883.000 | Mean Reward = 105.670
+  Best: Kills=0  Coins=9  Distance=1883.0  Levels completed=0
+
+Iteration 158 time: 44.162s
+Total so far: 7028.901s
+Mean/iter: 44.487s
+Std/iter: 1.418s
+
+=============================================
+
+Iteration 159/250
+Best Reward = 1612.134 | Mean Reward = 86.067
+  Best: Kills=0  Coins=8  Distance=1612.1  Levels completed=0
+
+Iteration 159 time: 44.421s
+Total so far: 7073.322s
+Mean/iter: 44.486s
+Std/iter: 1.413s
+
+=============================================
+
+Iteration 160/250
+Best Reward = 300.134 | Mean Reward = 102.906
+  Best: Kills=0  Coins=4  Distance=300.1  Levels completed=0
+
+Iteration 160 time: 43.639s
+Total so far: 7116.961s
+Mean/iter: 44.481s
+Std/iter: 1.410s
+
+=============================================
+
+Iteration 161/250
+Best Reward = 1883.000 | Mean Reward = 86.775
+  Best: Kills=0  Coins=11  Distance=1883.0  Levels completed=0
+
+Iteration 161 time: 42.214s
+Total so far: 7159.175s
+Mean/iter: 44.467s
+Std/iter: 1.417s
+
+=============================================
+
+Iteration 162/250
+Best Reward = 300.134 | Mean Reward = 87.116
+  Best: Kills=0  Coins=4  Distance=300.1  Levels completed=0
+
+Iteration 162 time: 42.399s
+Total so far: 7201.575s
+Mean/iter: 44.454s
+Std/iter: 1.422s
+
+=============================================
+
+Iteration 163/250
+Best Reward = 299.000 | Mean Reward = 85.993
+  Best: Kills=0  Coins=2  Distance=299.0  Levels completed=0
+
+Iteration 163 time: 42.836s
+Total so far: 7244.411s
+Mean/iter: 44.444s
+Std/iter: 1.423s
+
+=============================================
+
+Iteration 164/250
+Best Reward = 363.000 | Mean Reward = 92.031
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 164 time: 42.428s
+Total so far: 7286.839s
+Mean/iter: 44.432s
+Std/iter: 1.428s
+
+=============================================
+
+Iteration 165/250
+Best Reward = 300.134 | Mean Reward = 80.988
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 165 time: 42.547s
+Total so far: 7329.387s
+Mean/iter: 44.420s
+Std/iter: 1.431s
+
+=============================================
+
+Iteration 166/250
+Best Reward = 300.134 | Mean Reward = 79.532
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 166 time: 42.454s
+Total so far: 7371.841s
+Mean/iter: 44.409s
+Std/iter: 1.435s
+
+=============================================
+
+Iteration 167/250
+Best Reward = 300.134 | Mean Reward = 70.422
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 167 time: 42.458s
+Total so far: 7414.299s
+Mean/iter: 44.397s
+Std/iter: 1.438s
+
+=============================================
+
+Iteration 168/250
+Best Reward = 363.000 | Mean Reward = 84.421
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 168 time: 42.958s
+Total so far: 7457.257s
+Mean/iter: 44.388s
+Std/iter: 1.438s
+
+=============================================
+
+Iteration 169/250
+Best Reward = 300.134 | Mean Reward = 99.786
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 169 time: 42.511s
+Total so far: 7499.769s
+Mean/iter: 44.377s
+Std/iter: 1.441s
+
+=============================================
+
+Iteration 170/250
+Best Reward = 300.134 | Mean Reward = 88.004
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 170 time: 41.929s
+Total so far: 7541.698s
+Mean/iter: 44.363s
+Std/iter: 1.449s
+
+=============================================
+
+Iteration 171/250
+Best Reward = 300.134 | Mean Reward = 78.754
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 171 time: 42.652s
+Total so far: 7584.350s
+Mean/iter: 44.353s
+Std/iter: 1.451s
+
+=============================================
+
+Iteration 172/250
+Best Reward = 300.134 | Mean Reward = 85.468
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 172 time: 42.385s
+Total so far: 7626.735s
+Mean/iter: 44.341s
+Std/iter: 1.454s
+
+=============================================
+
+Iteration 173/250
+Best Reward = 300.134 | Mean Reward = 74.235
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 173 time: 42.442s
+Total so far: 7669.176s
+Mean/iter: 44.330s
+Std/iter: 1.457s
+
+=============================================
+
+Iteration 174/250
+Best Reward = 300.134 | Mean Reward = 99.728
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 174 time: 42.834s
+Total so far: 7712.011s
+Mean/iter: 44.322s
+Std/iter: 1.457s
+
+=============================================
+
+Iteration 175/250
+Best Reward = 300.134 | Mean Reward = 74.476
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 175 time: 42.541s
+Total so far: 7754.551s
+Mean/iter: 44.312s
+Std/iter: 1.459s
+
+=============================================
+
+Iteration 176/250
+Best Reward = 844.134 | Mean Reward = 99.868
+  Best: Kills=0  Coins=16  Distance=844.1  Levels completed=0
+
+Iteration 176 time: 42.456s
+Total so far: 7797.007s
+Mean/iter: 44.301s
+Std/iter: 1.462s
+
+=============================================
+
+Iteration 177/250
+Best Reward = 300.134 | Mean Reward = 94.026
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 177 time: 42.375s
+Total so far: 7839.382s
+Mean/iter: 44.290s
+Std/iter: 1.465s
+
+=============================================
+
+Iteration 178/250
+Best Reward = 300.134 | Mean Reward = 93.096
+  Best: Kills=0  Coins=4  Distance=300.1  Levels completed=0
+
+Iteration 178 time: 42.695s
+Total so far: 7882.078s
+Mean/iter: 44.281s
+Std/iter: 1.466s
+
+=============================================
+
+Iteration 179/250
+Best Reward = 300.134 | Mean Reward = 84.318
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 179 time: 42.225s
+Total so far: 7924.303s
+Mean/iter: 44.270s
+Std/iter: 1.469s
+
+=============================================
+
+Iteration 180/250
+Best Reward = 363.000 | Mean Reward = 80.401
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 180 time: 42.778s
+Total so far: 7967.081s
+Mean/iter: 44.261s
+Std/iter: 1.470s
+
+=============================================
+
+Iteration 181/250
+Best Reward = 843.000 | Mean Reward = 121.009
+  Best: Kills=1  Coins=11  Distance=843.0  Levels completed=0
+
+Iteration 181 time: 42.924s
+Total so far: 8010.005s
+Mean/iter: 44.254s
+Std/iter: 1.469s
+
+=============================================
+
+Iteration 182/250
+Best Reward = 619.000 | Mean Reward = 75.579
+  Best: Kills=0  Coins=3  Distance=619.0  Levels completed=0
+
+Iteration 182 time: 42.875s
+Total so far: 8052.880s
+Mean/iter: 44.246s
+Std/iter: 1.468s
+
+=============================================
+
+Iteration 183/250
+Best Reward = 300.134 | Mean Reward = 94.414
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 183 time: 42.806s
+Total so far: 8095.687s
+Mean/iter: 44.239s
+Std/iter: 1.468s
+
+=============================================
+
+Iteration 184/250
+Best Reward = 363.000 | Mean Reward = 93.087
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 184 time: 42.186s
+Total so far: 8137.873s
+Mean/iter: 44.227s
+Std/iter: 1.472s
+
+=============================================
+
+Iteration 185/250
+Best Reward = 363.000 | Mean Reward = 96.737
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 185 time: 42.474s
+Total so far: 8180.347s
+Mean/iter: 44.218s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 186/250
+Best Reward = 300.134 | Mean Reward = 104.728
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 186 time: 42.261s
+Total so far: 8222.608s
+Mean/iter: 44.207s
+Std/iter: 1.477s
+
+=============================================
+
+Iteration 187/250
+Best Reward = 300.134 | Mean Reward = 77.911
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 187 time: 42.949s
+Total so far: 8265.557s
+Mean/iter: 44.201s
+Std/iter: 1.475s
+
+=============================================
+
+Iteration 188/250
+Best Reward = 363.000 | Mean Reward = 89.509
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 188 time: 42.064s
+Total so far: 8307.621s
+Mean/iter: 44.189s
+Std/iter: 1.480s
+
+=============================================
+
+Iteration 189/250
+Best Reward = 300.134 | Mean Reward = 76.370
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 189 time: 42.704s
+Total so far: 8350.325s
+Mean/iter: 44.181s
+Std/iter: 1.480s
+
+=============================================
+
+Iteration 190/250
+Best Reward = 300.134 | Mean Reward = 99.879
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 190 time: 43.102s
+Total so far: 8393.427s
+Mean/iter: 44.176s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 191/250
+Best Reward = 619.000 | Mean Reward = 82.114
+  Best: Kills=0  Coins=2  Distance=619.0  Levels completed=0
+
+Iteration 191 time: 42.753s
+Total so far: 8436.180s
+Mean/iter: 44.168s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 192/250
+Best Reward = 619.000 | Mean Reward = 95.460
+  Best: Kills=0  Coins=4  Distance=619.0  Levels completed=0
+
+Iteration 192 time: 42.406s
+Total so far: 8478.586s
+Mean/iter: 44.159s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 193/250
+Best Reward = 300.134 | Mean Reward = 85.083
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 193 time: 42.904s
+Total so far: 8521.490s
+Mean/iter: 44.153s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 194/250
+Best Reward = 363.000 | Mean Reward = 61.566
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 194 time: 42.660s
+Total so far: 8564.150s
+Mean/iter: 44.145s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 195/250
+Best Reward = 363.000 | Mean Reward = 86.269
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 195 time: 42.648s
+Total so far: 8606.798s
+Mean/iter: 44.137s
+Std/iter: 1.478s
+
+=============================================
+
+Iteration 196/250
+Best Reward = 300.134 | Mean Reward = 77.930
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 196 time: 42.256s
+Total so far: 8649.054s
+Mean/iter: 44.128s
+Std/iter: 1.481s
+
+=============================================
+
+Iteration 197/250
+Best Reward = 300.134 | Mean Reward = 100.553
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 197 time: 42.809s
+Total so far: 8691.863s
+Mean/iter: 44.121s
+Std/iter: 1.480s
+
+=============================================
+
+Iteration 198/250
+Best Reward = 338.748 | Mean Reward = 115.333
+  Best: Kills=0  Coins=3  Distance=338.7  Levels completed=0
+
+Iteration 198 time: 43.367s
+Total so far: 8735.230s
+Mean/iter: 44.117s
+Std/iter: 1.477s
+
+=============================================
+
+Iteration 199/250
+Best Reward = 363.000 | Mean Reward = 78.545
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 199 time: 42.199s
+Total so far: 8777.429s
+Mean/iter: 44.108s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 200/250
+Best Reward = 364.134 | Mean Reward = 75.780
+  Best: Kills=0  Coins=1  Distance=364.1  Levels completed=0
+
+Iteration 200 time: 42.136s
+Total so far: 8819.566s
+Mean/iter: 44.098s
+Std/iter: 1.482s
+
+=============================================
+
+Iteration 201/250
+Best Reward = 300.134 | Mean Reward = 85.334
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 201 time: 42.452s
+Total so far: 8862.018s
+Mean/iter: 44.090s
+Std/iter: 1.483s
+
+=============================================
+
+Iteration 202/250
+Best Reward = 300.134 | Mean Reward = 87.881
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 202 time: 42.778s
+Total so far: 8904.796s
+Mean/iter: 44.083s
+Std/iter: 1.482s
+
+=============================================
+
+Iteration 203/250
+Best Reward = 363.000 | Mean Reward = 97.921
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 203 time: 42.563s
+Total so far: 8947.359s
+Mean/iter: 44.076s
+Std/iter: 1.483s
+
+=============================================
+
+Iteration 204/250
+Best Reward = 300.134 | Mean Reward = 88.709
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 204 time: 42.689s
+Total so far: 8990.048s
+Mean/iter: 44.069s
+Std/iter: 1.482s
+
+=============================================
+
+Iteration 205/250
+Best Reward = 300.134 | Mean Reward = 82.378
+  Best: Kills=0  Coins=3  Distance=300.1  Levels completed=0
+
+Iteration 205 time: 42.522s
+Total so far: 9032.571s
+Mean/iter: 44.061s
+Std/iter: 1.482s
+
+=============================================
+
+Iteration 206/250
+Best Reward = 300.134 | Mean Reward = 83.801
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 206 time: 42.955s
+Total so far: 9075.526s
+Mean/iter: 44.056s
+Std/iter: 1.481s
+
+=============================================
+
+Iteration 207/250
+Best Reward = 300.134 | Mean Reward = 80.333
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 207 time: 42.922s
+Total so far: 9118.448s
+Mean/iter: 44.050s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 208/250
+Best Reward = 1923.232 | Mean Reward = 87.582
+  Best: Kills=0  Coins=25  Distance=1923.2  Levels completed=0
+
+Iteration 208 time: 42.261s
+Total so far: 9160.709s
+Mean/iter: 44.042s
+Std/iter: 1.481s
+
+=============================================
+
+Iteration 209/250
+Best Reward = 300.134 | Mean Reward = 92.776
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 209 time: 42.267s
+Total so far: 9202.977s
+Mean/iter: 44.033s
+Std/iter: 1.482s
+
+=============================================
+
+Iteration 210/250
+Best Reward = 364.134 | Mean Reward = 126.907
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 210 time: 43.096s
+Total so far: 9246.073s
+Mean/iter: 44.029s
+Std/iter: 1.480s
+
+=============================================
+
+Iteration 211/250
+Best Reward = 300.134 | Mean Reward = 82.208
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 211 time: 42.692s
+Total so far: 9288.765s
+Mean/iter: 44.022s
+Std/iter: 1.480s
+
+=============================================
+
+Iteration 212/250
+Best Reward = 304.736 | Mean Reward = 82.289
+  Best: Kills=0  Coins=3  Distance=304.7  Levels completed=0
+
+Iteration 212 time: 42.259s
+Total so far: 9331.024s
+Mean/iter: 44.014s
+Std/iter: 1.481s
+
+=============================================
+
+Iteration 213/250
+Best Reward = 363.000 | Mean Reward = 82.525
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 213 time: 42.960s
+Total so far: 9373.984s
+Mean/iter: 44.009s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 214/250
+Best Reward = 363.000 | Mean Reward = 76.008
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 214 time: 42.633s
+Total so far: 9416.617s
+Mean/iter: 44.003s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 215/250
+Best Reward = 363.000 | Mean Reward = 83.820
+  Best: Kills=0  Coins=0  Distance=363.0  Levels completed=0
+
+Iteration 215 time: 42.595s
+Total so far: 9459.213s
+Mean/iter: 43.996s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 216/250
+Best Reward = 1883.000 | Mean Reward = 113.700
+  Best: Kills=1  Coins=22  Distance=1883.0  Levels completed=0
+
+Iteration 216 time: 42.424s
+Total so far: 9501.637s
+Mean/iter: 43.989s
+Std/iter: 1.479s
+
+=============================================
+
+Iteration 217/250
+Best Reward = 4086.000 | Mean Reward = 120.257
+  Best: Kills=3  Coins=22  Distance=3195.0  Levels completed=1
+
+Iteration 217 time: 43.453s
+Total so far: 9545.090s
+Mean/iter: 43.986s
+Std/iter: 1.476s
+
+=============================================
+
+Iteration 218/250
+Best Reward = 300.134 | Mean Reward = 79.161
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 218 time: 42.972s
+Total so far: 9588.063s
+Mean/iter: 43.982s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 219/250
+Best Reward = 619.000 | Mean Reward = 87.392
+  Best: Kills=0  Coins=5  Distance=619.0  Levels completed=0
+
+Iteration 219 time: 41.978s
+Total so far: 9630.040s
+Mean/iter: 43.973s
+Std/iter: 1.477s
+
+=============================================
+
+Iteration 220/250
+Best Reward = 300.134 | Mean Reward = 87.738
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 220 time: 43.229s
+Total so far: 9673.270s
+Mean/iter: 43.969s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 221/250
+Best Reward = 363.000 | Mean Reward = 96.196
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 221 time: 42.706s
+Total so far: 9715.976s
+Mean/iter: 43.964s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 222/250
+Best Reward = 299.000 | Mean Reward = 88.099
+  Best: Kills=0  Coins=4  Distance=299.0  Levels completed=0
+
+Iteration 222 time: 42.435s
+Total so far: 9758.412s
+Mean/iter: 43.957s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 223/250
+Best Reward = 364.134 | Mean Reward = 103.150
+  Best: Kills=0  Coins=0  Distance=364.1  Levels completed=0
+
+Iteration 223 time: 42.404s
+Total so far: 9800.816s
+Mean/iter: 43.950s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 224/250
+Best Reward = 363.000 | Mean Reward = 71.713
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 224 time: 42.622s
+Total so far: 9843.438s
+Mean/iter: 43.944s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 225/250
+Best Reward = 300.134 | Mean Reward = 83.618
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 225 time: 41.989s
+Total so far: 9885.427s
+Mean/iter: 43.935s
+Std/iter: 1.476s
+
+=============================================
+
+Iteration 226/250
+Best Reward = 300.134 | Mean Reward = 80.186
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 226 time: 42.708s
+Total so far: 9928.135s
+Mean/iter: 43.930s
+Std/iter: 1.475s
+
+=============================================
+
+Iteration 227/250
+Best Reward = 300.134 | Mean Reward = 85.887
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 227 time: 42.494s
+Total so far: 9970.630s
+Mean/iter: 43.923s
+Std/iter: 1.475s
+
+=============================================
+
+Iteration 228/250
+Best Reward = 363.000 | Mean Reward = 73.710
+  Best: Kills=0  Coins=2  Distance=363.0  Levels completed=0
+
+Iteration 228 time: 42.659s
+Total so far: 10013.289s
+Mean/iter: 43.918s
+Std/iter: 1.474s
+
+=============================================
+
+Iteration 229/250
+Best Reward = 300.134 | Mean Reward = 92.530
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 229 time: 42.992s
+Total so far: 10056.281s
+Mean/iter: 43.914s
+Std/iter: 1.472s
+
+=============================================
+
+Iteration 230/250
+Best Reward = 300.134 | Mean Reward = 92.488
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 230 time: 42.476s
+Total so far: 10098.757s
+Mean/iter: 43.908s
+Std/iter: 1.472s
+
+=============================================
+
+Iteration 231/250
+Best Reward = 300.134 | Mean Reward = 77.110
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 231 time: 42.582s
+Total so far: 10141.339s
+Mean/iter: 43.902s
+Std/iter: 1.471s
+
+=============================================
+
+Iteration 232/250
+Best Reward = 364.134 | Mean Reward = 87.049
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 232 time: 42.679s
+Total so far: 10184.018s
+Mean/iter: 43.896s
+Std/iter: 1.470s
+
+=============================================
+
+Iteration 233/250
+Best Reward = 363.000 | Mean Reward = 75.747
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 233 time: 42.603s
+Total so far: 10226.622s
+Mean/iter: 43.891s
+Std/iter: 1.469s
+
+=============================================
+
+Iteration 234/250
+Best Reward = 300.134 | Mean Reward = 99.109
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 234 time: 42.201s
+Total so far: 10268.823s
+Mean/iter: 43.884s
+Std/iter: 1.470s
+
+=============================================
+
+Iteration 235/250
+Best Reward = 364.134 | Mean Reward = 86.366
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 235 time: 42.709s
+Total so far: 10311.532s
+Mean/iter: 43.879s
+Std/iter: 1.469s
+
+=============================================
+
+Iteration 236/250
+Best Reward = 363.000 | Mean Reward = 86.412
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 236 time: 42.527s
+Total so far: 10354.059s
+Mean/iter: 43.873s
+Std/iter: 1.469s
+
+=============================================
+
+Iteration 237/250
+Best Reward = 300.134 | Mean Reward = 78.642
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 237 time: 42.768s
+Total so far: 10396.828s
+Mean/iter: 43.868s
+Std/iter: 1.467s
+
+=============================================
+
+Iteration 238/250
+Best Reward = 364.134 | Mean Reward = 86.495
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 238 time: 42.776s
+Total so far: 10439.604s
+Mean/iter: 43.864s
+Std/iter: 1.466s
+
+=============================================
+
+Iteration 239/250
+Best Reward = 364.134 | Mean Reward = 86.555
+  Best: Kills=0  Coins=3  Distance=364.1  Levels completed=0
+
+Iteration 239 time: 42.561s
+Total so far: 10482.165s
+Mean/iter: 43.858s
+Std/iter: 1.465s
+
+=============================================
+
+Iteration 240/250
+Best Reward = 300.134 | Mean Reward = 87.889
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 240 time: 42.627s
+Total so far: 10524.792s
+Mean/iter: 43.853s
+Std/iter: 1.465s
+
+=============================================
+
+Iteration 241/250
+Best Reward = 363.000 | Mean Reward = 99.916
+  Best: Kills=0  Coins=4  Distance=363.0  Levels completed=0
+
+Iteration 241 time: 42.388s
+Total so far: 10567.180s
+Mean/iter: 43.847s
+Std/iter: 1.465s
+
+=============================================
+
+Iteration 242/250
+Best Reward = 300.134 | Mean Reward = 74.007
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 242 time: 42.795s
+Total so far: 10609.975s
+Mean/iter: 43.843s
+Std/iter: 1.463s
+
+=============================================
+
+Iteration 243/250
+Best Reward = 300.134 | Mean Reward = 76.157
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 243 time: 42.618s
+Total so far: 10652.594s
+Mean/iter: 43.838s
+Std/iter: 1.462s
+
+=============================================
+
+Iteration 244/250
+Best Reward = 843.000 | Mean Reward = 91.141
+  Best: Kills=0  Coins=1  Distance=843.0  Levels completed=0
+
+Iteration 244 time: 42.704s
+Total so far: 10695.297s
+Mean/iter: 43.833s
+Std/iter: 1.461s
+
+=============================================
+
+Iteration 245/250
+Best Reward = 300.134 | Mean Reward = 101.611
+  Best: Kills=0  Coins=2  Distance=300.1  Levels completed=0
+
+Iteration 245 time: 42.447s
+Total so far: 10737.745s
+Mean/iter: 43.827s
+Std/iter: 1.461s
+
+=============================================
+
+Iteration 246/250
+Best Reward = 300.134 | Mean Reward = 93.239
+  Best: Kills=0  Coins=1  Distance=300.1  Levels completed=0
+
+Iteration 246 time: 42.731s
+Total so far: 10780.476s
+Mean/iter: 43.823s
+Std/iter: 1.459s
+
+=============================================
+
+Iteration 247/250
+Best Reward = 316.286 | Mean Reward = 105.845
+  Best: Kills=0  Coins=4  Distance=316.3  Levels completed=0
+
+Iteration 247 time: 42.440s
+Total so far: 10822.916s
+Mean/iter: 43.817s
+Std/iter: 1.459s
+
+=============================================
+
+Iteration 248/250
+Best Reward = 363.000 | Mean Reward = 99.375
+  Best: Kills=0  Coins=1  Distance=363.0  Levels completed=0
+
+Iteration 248 time: 42.853s
+Total so far: 10865.769s
+Mean/iter: 43.813s
+Std/iter: 1.457s
+
+=============================================
+
+Iteration 249/250
+Best Reward = 317.242 | Mean Reward = 79.242
+  Best: Kills=0  Coins=2  Distance=317.2  Levels completed=0
+
+Iteration 249 time: 42.085s
+Total so far: 10907.855s
+Mean/iter: 43.807s
+Std/iter: 1.459s
+
+=============================================
+
+Iteration 250/250
+Best Reward = 363.000 | Mean Reward = 89.666
+  Best: Kills=0  Coins=3  Distance=363.0  Levels completed=0
+
+Iteration 250 time: 43.065s
+Total so far: 10950.920s
+Mean/iter: 43.804s
+Std/iter: 1.456s
