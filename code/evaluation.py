@@ -90,6 +90,82 @@ def evaluate_agent(agent, task, episodes=1, max_fps=-1):
     return total_reward / episodes, total_kills, total_coins, total_distance, total_levels_completed
 
 
+def evaluate_agent_detailed(agent, task, max_fps=-1):
+    """
+    Evaluates the agent across all 3 levels regardless of death.
+    On death the agent is forced to continue to the next level.
+
+    Returns:
+        per_level  – list of 3 dicts, one per level:
+                     {level, status, reward, kills, coins, distance, died}
+        contiguous – totals for the unbroken run of survived levels
+                     (stops at the first death):
+                     {levels, reward, kills, coins, distance}
+        grand      – totals across ALL levels (even after a death):
+                     {levels_completed, reward, kills, coins, distance}
+    """
+    exp = marioai.Experiment(task, agent)
+    exp.max_fps = max_fps
+
+    task.level_difficulty = 0
+    task.kill_count = 0
+
+    per_level = []
+
+    for level_idx in range(3):
+        exp.doEpisodes(1)
+
+        # Settle touch events for this level.
+        level_kills = int(getattr(task, 'sub_episode_touch_events', 0))
+        task.kill_count += level_kills
+
+        if getattr(task, 'kill_rewards', False):
+            kill_bonus = getattr(task, 'base_terminal_reward', 0.0) * task.kill_count * task.kill_multiplier
+            task.cum_reward += kill_bonus
+
+        level_reward = task.cum_reward
+        mario_pos = getattr(task, 'last_mario_pos', None)
+        level_distance = float(mario_pos[0]) if mario_pos is not None else 0.0
+        level_coins = int(getattr(task, 'last_coins', 0))
+        level_status = task.status  # 1 = WIN, anything else = DEATH/timeout
+        died = level_status != 1
+
+        per_level.append({
+            'level':    level_idx,
+            'status':   level_status,
+            'reward':   level_reward,
+            'kills':    level_kills,
+            'coins':    level_coins,
+            'distance': level_distance,
+            'died':     died,
+        })
+
+        # Always advance to the next level, even on death.
+        task.level_difficulty += 1
+
+    # Contiguous survival total: accumulate until the first death.
+    contiguous = {'levels': 0, 'reward': 0.0, 'kills': 0, 'coins': 0, 'distance': 0.0}
+    for lv in per_level:
+        if lv['died']:
+            break
+        contiguous['levels']   += 1
+        contiguous['reward']   += lv['reward']
+        contiguous['kills']    += lv['kills']
+        contiguous['coins']    += lv['coins']
+        contiguous['distance'] += lv['distance']
+
+    # Grand total across all levels regardless of death.
+    grand = {
+        'levels_completed': sum(1 for lv in per_level if not lv['died']),
+        'reward':   sum(lv['reward']   for lv in per_level),
+        'kills':    sum(lv['kills']    for lv in per_level),
+        'coins':    sum(lv['coins']    for lv in per_level),
+        'distance': sum(lv['distance'] for lv in per_level),
+    }
+
+    return per_level, contiguous, grand
+
+
 # --- GLOBAL VARIABLES FOR WORKER PROCESSES ---
 # These exist independently inside EACH worker process.
 worker_task = None 

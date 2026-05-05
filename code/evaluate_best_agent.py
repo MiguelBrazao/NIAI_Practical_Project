@@ -12,37 +12,26 @@ import evaluation
 
 def evaluate_mlp_agent():
     """
-    Evaluates the best MLP agent saved in a pickle file. 
-    The file name is expected to contain the task type and 
-    random seed used during training, which are extracted 
-    to configure the evaluation environment. The agent's 
-    parameters are loaded from the file, and the agent 
-    is evaluated on the specified task for a single 
-    episode with visualization enabled. The final 
-    reward and kill count are printed at the 
-    end of the evaluation.
+    Evaluates the best MLP agent saved in a pickle file.
+    Runs through all 3 levels regardless of death, then reports
+    per-level metrics, contiguous-survival totals, and grand totals.
     """
     import os
 
     # e.g. ga_move_forward_seed_42_1234.56.pkl
-    filename = os.path.basename(sys.argv[1])           
-
-    # ga_move_forward_seed_42_1234.56
+    #      random_search_hunter_seed_42_1234.56.pkl
+    filename = os.path.basename(sys.argv[1])
     stem = filename.replace('.pkl', '')
+    parts = stem.split('_seed_', 1)
 
-    # ['ga_move_forward', '42_1234.56']                
-    parts = stem.split('_seed_', 1)                    
+    # Detect task from the prefix portion (robust to ga_ and random_search_ prefixes)
+    task_key = 'move_forward' if 'move_forward' in parts[0] else 'hunter'
 
-    # 'move_forward'
-    task_key = parts[0].removeprefix('ga_')          
-
-    # 42  
-    seed = int(parts[1].split('_')[0])                 
+    # 42
+    seed = int(parts[1].split('_')[0])
 
     TaskClass = MoveForwardTask if task_key == 'move_forward' else HunterTask
 
-    # Seed was the numpy/torch random seed 
-    # used during GA training, not a level seed.
     np.random.seed(seed)
     torch.manual_seed(seed)
 
@@ -54,8 +43,25 @@ def evaluate_mlp_agent():
 
     agent.set_param_vector(best_params)
 
-    reward, kills, coins, distance, levels = evaluation.evaluate_agent(agent, task, episodes=1, max_fps=60)
-    print(f"Reward: {reward:.3f}  |  Kills: {kills}  |  Coins: {coins}  |  Distance: {distance:.1f}  |  Levels completed: {levels}")
+    per_level, contiguous, grand = evaluation.evaluate_agent_detailed(agent, task, max_fps=60)
+
+    print("\n=== Per-Level Results ===")
+    for lv in per_level:
+        status_str = "WIN " if not lv['died'] else "DIED"
+        print(f"  Level {lv['level']}: {status_str}  |  Reward={lv['reward']:.3f}  |  Kills={lv['kills']}  |  Coins={lv['coins']}  |  Distance={lv['distance']:.1f}")
+
+    deaths = [lv['level'] for lv in per_level if lv['died']]
+    print(f"\nDied on level(s): {deaths if deaths else 'none'}")
+
+    if contiguous['levels'] > 0:
+        survived_range = f"0–{contiguous['levels'] - 1}"
+    else:
+        survived_range = "none"
+    print(f"\n=== Contiguous Survival Total (levels {survived_range}) ===")
+    print(f"  Levels: {contiguous['levels']}  |  Reward={contiguous['reward']:.3f}  |  Kills={contiguous['kills']}  |  Coins={contiguous['coins']}  |  Distance={contiguous['distance']:.1f}")
+
+    print(f"\n=== Grand Total (all levels) ===")
+    print(f"  Levels completed: {grand['levels_completed']}  |  Reward={grand['reward']:.3f}  |  Kills={grand['kills']}  |  Coins={grand['coins']}  |  Distance={grand['distance']:.1f}")
 
 
 if __name__ == '__main__':
